@@ -180,7 +180,15 @@ public class StreamProcessor extends Actor implements Service<StreamProcessor> {
     final ZeebeState zeebeState = recoverState();
     final long snapshotPosition = zeebeState.getLastSuccessfulProcessedRecordPosition();
 
+    LOG.info(
+        "Recovering state of partition {} : seek to snapshot position {}",
+        partitionId,
+        snapshotPosition);
     final boolean failedToRecoverReader = !logStreamReader.seekToNextEvent(snapshotPosition);
+    LOG.info(
+        "Recovering state of partition {} : seeked to snapshot position {}",
+        partitionId,
+        snapshotPosition);
     if (failedToRecoverReader) {
       throw new IllegalStateException(
           String.format(ERROR_MESSAGE_RECOVER_FROM_SNAPSHOT_FAILED, snapshotPosition, getName()));
