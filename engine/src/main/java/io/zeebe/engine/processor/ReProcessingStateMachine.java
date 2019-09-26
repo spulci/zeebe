@@ -133,8 +133,9 @@ public final class ReProcessingStateMachine {
     LOG.debug("Finished scanning the log for error events.");
 
     if (lastSourceEventPosition > snapshotPosition) {
-      LOG.info("Processor seeking to last source event position {}", lastSourceEventPosition);
+      LOG.info("Processor seeking to snapshot position {}", snapshotPosition);
       logStreamReader.seekToNextEvent(snapshotPosition);
+      LOG.info("Finished seeking to snapshot position {}", snapshotPosition);
       LOG.info(
           "Processor starts reprocessing, until last source event position {}",
           lastSourceEventPosition);
