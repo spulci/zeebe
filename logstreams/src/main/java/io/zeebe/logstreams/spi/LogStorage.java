@@ -118,6 +118,12 @@ public interface LogStorage {
    */
   long read(ByteBuffer readBuffer, long addr, ReadResultProcessor processor);
 
+  long getFirstBlockAddress(int segmentId);
+
+  int getFirstSegmentId();
+
+  int getLastSegmentId();
+
   /**
    * Reads bytes into the given read buffer, starts with the last written blocks and iterates with
    * help of the given processor.

@@ -82,7 +82,7 @@ public class BufferedLogStreamReader implements LogStreamReader {
     return false;
   }
 
-  @Override
+  /*  @Override
   public boolean seek(final long position) {
     if (state == IteratorState.WRAP_NOT_CALLED) {
       throw new IllegalStateException("Iterator not initialized");
@@ -92,6 +92,46 @@ public class BufferedLogStreamReader implements LogStreamReader {
     invalidateBufferAndOffsets();
 
     final long blockAddress = logStorage.getFirstBlockAddress();
+    if (blockAddress < 0) {
+      // no block found => empty log
+      state = IteratorState.EMPTY_LOG_STREAM;
+      return false;
+    } else {
+      readBlockIntoBuffer(blockAddress);
+      readNextEvent();
+      return searchPositionInBuffer(position);
+    }
+  }*/
+
+  @Override
+  public boolean seek(final long position) {
+    if (state == IteratorState.WRAP_NOT_CALLED) {
+      throw new IllegalStateException("Iterator not initialized");
+    }
+
+    final int firstSegmentId = logStorage.getFirstSegmentId();
+    final int lastSegmentId = logStorage.getLastSegmentId();
+
+    int segment = firstSegmentId;
+
+    for (int segmentId = firstSegmentId; segmentId <= lastSegmentId; segmentId++) {
+      invalidateBufferAndOffsets();
+      final long blockAddress = logStorage.getFirstBlockAddress(segmentId);
+      if (blockAddress >= 0) {
+        readBlockIntoBuffer(blockAddress);
+        readNextEvent();
+        if (nextEvent.getPosition() == position) {
+          return true;
+        } else if (nextEvent.getPosition() < position) {
+          segment = segmentId;
+        } else if (nextEvent.getPosition() > position) {
+          break;
+        }
+      }
+    }
+
+    invalidateBufferAndOffsets();
+    final long blockAddress = logStorage.getFirstBlockAddress(segment);
     if (blockAddress < 0) {
       // no block found => empty log
       state = IteratorState.EMPTY_LOG_STREAM;

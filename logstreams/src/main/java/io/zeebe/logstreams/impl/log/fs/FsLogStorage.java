@@ -149,6 +149,65 @@ public class FsLogStorage implements LogStorage {
   }
 
   @Override
+  public long getFirstBlockAddress(int segmentId) {
+    ensureOpenedStorage();
+
+    final FsLogSegment segment = logSegments.getSegment(segmentId);
+    if (segment != null && segment.getSizeVolatile() > METADATA_LENGTH) {
+      return position(segment.getSegmentId(), METADATA_LENGTH);
+    } else {
+      return -1;
+    }
+  }
+
+  @Override
+  public int getFirstSegmentId() {
+    ensureOpenedStorage();
+    return logSegments.getFirst().getSegmentId();
+  }
+
+  @Override
+  public int getLastSegmentId() {
+    ensureOpenedStorage();
+    return logSegments.getLastSegmentId();
+  }
+
+  @Override
+  public long readLastBlock(final ByteBuffer readBuffer, final ReadResultProcessor processor) {
+    ensureOpenedStorage();
+
+    final int segmentCount = logSegments.segmentCount;
+    final FsLogSegment lastSegment = logSegments.getSegment(segmentCount - 1);
+
+    if (lastSegment != null && lastSegment.getSizeVolatile() > METADATA_LENGTH) {
+      boolean findLast = true;
+      final int segmentId = lastSegment.getSegmentId();
+      long currentAddress = position(segmentId, METADATA_LENGTH);
+      final int startPosition = readBuffer.position();
+      final int limit = readBuffer.limit();
+      while (findLast) {
+        // re-init
+        readBuffer.position(startPosition);
+        readBuffer.limit(limit);
+
+        final long nextAddress = read(readBuffer, currentAddress, processor);
+
+        if (nextAddress == OP_RESULT_NO_DATA) {
+          findLast = false;
+        } else {
+          if (nextAddress < 0L) {
+            findLast = false;
+          }
+          currentAddress = nextAddress;
+        }
+      }
+
+      return currentAddress;
+    }
+    return OP_RESULT_NO_DATA;
+  }
+
+  @Override
   public boolean isByteAddressable() {
     return true;
   }
@@ -208,41 +267,6 @@ public class FsLogStorage implements LogStorage {
     } else {
       return -1;
     }
-  }
-
-  @Override
-  public long readLastBlock(final ByteBuffer readBuffer, final ReadResultProcessor processor) {
-    ensureOpenedStorage();
-
-    final int segmentCount = logSegments.segmentCount;
-    final FsLogSegment lastSegment = logSegments.getSegment(segmentCount - 1);
-
-    if (lastSegment != null && lastSegment.getSizeVolatile() > METADATA_LENGTH) {
-      boolean findLast = true;
-      final int segmentId = lastSegment.getSegmentId();
-      long currentAddress = position(segmentId, METADATA_LENGTH);
-      final int startPosition = readBuffer.position();
-      final int limit = readBuffer.limit();
-      while (findLast) {
-        // re-init
-        readBuffer.position(startPosition);
-        readBuffer.limit(limit);
-
-        final long nextAddress = read(readBuffer, currentAddress, processor);
-
-        if (nextAddress == OP_RESULT_NO_DATA) {
-          findLast = false;
-        } else {
-          if (nextAddress < 0L) {
-            findLast = false;
-          }
-          currentAddress = nextAddress;
-        }
-      }
-
-      return currentAddress;
-    }
-    return OP_RESULT_NO_DATA;
   }
 
   @Override
