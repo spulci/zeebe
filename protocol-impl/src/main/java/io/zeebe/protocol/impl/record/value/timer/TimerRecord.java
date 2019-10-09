@@ -8,6 +8,7 @@
 package io.zeebe.protocol.impl.record.value.timer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.zeebe.msgpack.property.EnumProperty;
 import io.zeebe.msgpack.property.IntegerProperty;
 import io.zeebe.msgpack.property.LongProperty;
 import io.zeebe.msgpack.property.StringProperty;
@@ -26,6 +27,8 @@ public class TimerRecord extends UnifiedRecordValue
   private final StringProperty targetElementId = new StringProperty("targetElementId");
   private final IntegerProperty repetitionsProp = new IntegerProperty("repetitions");
   private final LongProperty workflowKeyProp = new LongProperty("workflowKey");
+  private final EnumProperty<TimerType> timerType =
+      new EnumProperty<>("timerType", TimerType.class);
 
   public TimerRecord() {
     this.declareProperty(elementInstanceKeyProp)
@@ -33,7 +36,8 @@ public class TimerRecord extends UnifiedRecordValue
         .declareProperty(dueDateProp)
         .declareProperty(targetElementId)
         .declareProperty(repetitionsProp)
-        .declareProperty(workflowKeyProp);
+        .declareProperty(workflowKeyProp)
+        .declareProperty(timerType);
   }
 
   @JsonIgnore
@@ -98,5 +102,20 @@ public class TimerRecord extends UnifiedRecordValue
   public TimerRecord setWorkflowKey(long workflowKey) {
     this.workflowKeyProp.setValue(workflowKey);
     return this;
+  }
+
+  public TimerType getTimerType() {
+    return this.timerType.getValue();
+  }
+
+  public TimerRecord setTimerType(TimerType type) {
+    this.timerType.setValue(type);
+    return this;
+  }
+
+  public enum TimerType {
+    CATCH,
+    START,
+    EVENT_SUBPROC,
   }
 }

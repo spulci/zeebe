@@ -7,7 +7,6 @@
  */
 package io.zeebe.engine.processor.workflow.timer;
 
-import static io.zeebe.engine.state.instance.TimerInstance.NO_ELEMENT_INSTANCE;
 import static io.zeebe.util.buffer.BufferUtil.bufferAsString;
 
 import io.zeebe.engine.processor.KeyGenerator;
@@ -26,6 +25,7 @@ import io.zeebe.engine.state.instance.TimerInstance;
 import io.zeebe.model.bpmn.util.time.RepeatingInterval;
 import io.zeebe.msgpack.value.DocumentValue;
 import io.zeebe.protocol.impl.record.value.timer.TimerRecord;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
 import io.zeebe.protocol.record.RejectionType;
 import io.zeebe.protocol.record.intent.TimerIntent;
@@ -77,15 +77,17 @@ public class TriggerTimerProcessor implements TypedRecordProcessor<TimerRecord> 
       TypedStreamWriter streamWriter,
       TimerRecord timer,
       long elementInstanceKey) {
-    final long eventScopeKey =
-        isTimerStartEvent(elementInstanceKey)
-            ? record.getValue().getWorkflowKey()
-            : elementInstanceKey;
 
-    final boolean wasActiveTimer = tryTriggerTimer(eventScopeKey, streamWriter, timer);
+    final long eventScopeKey;
+    if (timer.getTimerType() == TimerType.START) {
+      eventScopeKey = record.getValue().getWorkflowKey();
+    } else {
+      eventScopeKey = elementInstanceKey;
+    }
+
+    final boolean wasActiveTimer = tryTriggerTimer(eventScopeKey, timer);
     if (wasActiveTimer) {
-      final long eventOccurredKey =
-          prepareEventOccurredEvent(streamWriter, timer, elementInstanceKey);
+      final long eventOccurredKey = prepareEventOccurredEvent(timer, elementInstanceKey);
 
       streamWriter.appendFollowUpEvent(record.getKey(), TimerIntent.TRIGGERED, timer);
       streamWriter.appendFollowUpEvent(
@@ -107,8 +109,7 @@ public class TriggerTimerProcessor implements TypedRecordProcessor<TimerRecord> 
     }
   }
 
-  private boolean tryTriggerTimer(
-      long eventScopeKey, TypedStreamWriter streamWriter, TimerRecord timer) {
+  private boolean tryTriggerTimer(long eventScopeKey, TimerRecord timer) {
     final long eventKey = keyGenerator.nextKey();
     return workflowState
         .getEventScopeInstanceState()
@@ -119,28 +120,32 @@ public class TriggerTimerProcessor implements TypedRecordProcessor<TimerRecord> 
             DocumentValue.EMPTY_DOCUMENT);
   }
 
-  private long prepareEventOccurredEvent(
-      TypedStreamWriter streamWriter, TimerRecord timer, long elementInstanceKey) {
+  private long prepareEventOccurredEvent(TimerRecord timer, long elementInstanceKey) {
     final long eventOccurredKey;
-
     eventOccurredRecord.reset();
-    if (isTimerStartEvent(elementInstanceKey)) {
 
+    if (timer.getTimerType() == TimerType.START) {
       eventOccurredKey = keyGenerator.nextKey();
       eventOccurredRecord
           .setBpmnElementType(BpmnElementType.START_EVENT)
           .setWorkflowKey(timer.getWorkflowKey())
           .setElementId(timer.getTargetElementIdBuffer());
+    } else if (timer.getTimerType() == TimerType.EVENT_SUBPROC) {
+      eventOccurredKey = keyGenerator.nextKey();
+
+      eventOccurredRecord.wrap(
+          workflowState.getElementInstanceState().getInstance(elementInstanceKey).getValue());
+      eventOccurredRecord
+          .setBpmnElementType(BpmnElementType.START_EVENT)
+          .setElementId(timer.getTargetElementIdBuffer())
+          .setFlowScopeKey(elementInstanceKey);
     } else {
       eventOccurredKey = elementInstanceKey;
       eventOccurredRecord.wrap(
           workflowState.getElementInstanceState().getInstance(elementInstanceKey).getValue());
     }
-    return eventOccurredKey;
-  }
 
-  private boolean isTimerStartEvent(long elementInstanceKey) {
-    return elementInstanceKey == NO_ELEMENT_INSTANCE;
+    return eventOccurredKey;
   }
 
   private boolean shouldReschedule(TimerRecord timer) {
@@ -148,7 +153,8 @@ public class TriggerTimerProcessor implements TypedRecordProcessor<TimerRecord> 
   }
 
   private ExecutableCatchEventElement getTimerEvent(long elementInstanceKey, TimerRecord timer) {
-    if (isTimerStartEvent(elementInstanceKey)) {
+    if (timer.getTimerType() == TimerType.START
+        || timer.getTimerType() == TimerType.EVENT_SUBPROC) {
       final List<ExecutableCatchEventElement> startEvents =
           workflowState.getWorkflowByKey(timer.getWorkflowKey()).getWorkflow().getStartEvents();
 
@@ -194,6 +200,7 @@ public class TriggerTimerProcessor implements TypedRecordProcessor<TimerRecord> 
         record.getWorkflowKey(),
         event.getId(),
         timer,
+        record.getTimerType(),
         writer);
   }
 

@@ -24,6 +24,7 @@ import io.zeebe.engine.processor.workflow.handlers.catchevent.IntermediateCatchE
 import io.zeebe.engine.processor.workflow.handlers.catchevent.IntermediateCatchEventEventOccurredHandler;
 import io.zeebe.engine.processor.workflow.handlers.catchevent.StartEventEventOccurredHandler;
 import io.zeebe.engine.processor.workflow.handlers.container.ContainerElementActivatedHandler;
+import io.zeebe.engine.processor.workflow.handlers.container.ContainerElementActivatingHandler;
 import io.zeebe.engine.processor.workflow.handlers.container.ContainerElementTerminatingHandler;
 import io.zeebe.engine.processor.workflow.handlers.container.ProcessCompletedHandler;
 import io.zeebe.engine.processor.workflow.handlers.element.ElementActivatedHandler;
@@ -33,6 +34,7 @@ import io.zeebe.engine.processor.workflow.handlers.element.ElementCompletingHand
 import io.zeebe.engine.processor.workflow.handlers.element.ElementTerminatedHandler;
 import io.zeebe.engine.processor.workflow.handlers.element.ElementTerminatingHandler;
 import io.zeebe.engine.processor.workflow.handlers.element.EventOccurredHandler;
+import io.zeebe.engine.processor.workflow.handlers.eventsubproc.EventSubProcessEventOccurredHandler;
 import io.zeebe.engine.processor.workflow.handlers.gateway.EventBasedGatewayElementActivatingHandler;
 import io.zeebe.engine.processor.workflow.handlers.gateway.EventBasedGatewayElementCompletedHandler;
 import io.zeebe.engine.processor.workflow.handlers.gateway.EventBasedGatewayElementCompletingHandler;
@@ -87,6 +89,9 @@ public class BpmnStepHandlers {
         BpmnStep.ACTIVITY_ELEMENT_TERMINATED,
         new ActivityElementTerminatedHandler<>(incidentResolver));
 
+    stepHandlers.put(
+        BpmnStep.CONTAINER_ELEMENT_ACTIVATING,
+        new ContainerElementActivatingHandler<>(catchEventSubscriber));
     stepHandlers.put(
         BpmnStep.CONTAINER_ELEMENT_ACTIVATED,
         new ContainerElementActivatedHandler<>(state.getWorkflowState()));
@@ -146,6 +151,9 @@ public class BpmnStepHandlers {
 
     stepHandlers.put(
         BpmnStep.START_EVENT_EVENT_OCCURRED, new StartEventEventOccurredHandler<>(state));
+
+    stepHandlers.put(
+        BpmnStep.EVENT_SUBPROC_EVENT_OCCURRED, new EventSubProcessEventOccurredHandler<>(state));
 
     stepHandlers.put(
         BpmnStep.PARALLEL_MERGE_SEQUENCE_FLOW_TAKEN, new ParallelMergeSequenceFlowTaken<>());

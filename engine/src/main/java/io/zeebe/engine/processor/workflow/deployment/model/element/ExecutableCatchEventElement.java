@@ -8,6 +8,7 @@
 package io.zeebe.engine.processor.workflow.deployment.model.element;
 
 import io.zeebe.model.bpmn.util.time.Timer;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -18,8 +19,8 @@ public class ExecutableCatchEventElement extends ExecutableFlowNode
   private final List<ExecutableCatchEvent> events = Collections.singletonList(this);
 
   private ExecutableMessage message;
-
   private Timer timer;
+  private DirectBuffer eventSubProcess;
 
   public ExecutableCatchEventElement(String id) {
     super(id);
@@ -47,6 +48,19 @@ public class ExecutableCatchEventElement extends ExecutableFlowNode
   @Override
   public Timer getTimer() {
     return timer;
+  }
+
+  @Override
+  public TimerType getTimerType() {
+    return TimerType.CATCH;
+  }
+
+  public DirectBuffer getEventSubProcess() {
+    return eventSubProcess;
+  }
+
+  public void setEventSubProcess(DirectBuffer eventSubProcess) {
+    this.eventSubProcess = eventSubProcess;
   }
 
   public void setTimer(Timer timer) {

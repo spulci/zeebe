@@ -14,11 +14,11 @@ import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableCal
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableCatchEventElement;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableEventBasedGateway;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableExclusiveGateway;
-import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableFlowElementContainer;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableFlowNode;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableReceiveTask;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableSequenceFlow;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableServiceTask;
+import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableSubprocess;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableWorkflow;
 import io.zeebe.engine.processor.workflow.deployment.model.transformation.ModelElementTransformer;
 import io.zeebe.engine.processor.workflow.deployment.model.transformation.TransformContext;
@@ -60,7 +60,7 @@ public class FlowElementInstantiationTransformer implements ModelElementTransfor
     ELEMENT_FACTORIES.put(ServiceTask.class, ExecutableServiceTask::new);
     ELEMENT_FACTORIES.put(ReceiveTask.class, ExecutableReceiveTask::new);
     ELEMENT_FACTORIES.put(StartEvent.class, ExecutableCatchEventElement::new);
-    ELEMENT_FACTORIES.put(SubProcess.class, ExecutableFlowElementContainer::new);
+    ELEMENT_FACTORIES.put(SubProcess.class, ExecutableSubprocess::new);
   }
 
   @Override

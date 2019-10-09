@@ -7,46 +7,51 @@
  */
 package io.zeebe.engine.processor.workflow.deployment.model.element;
 
-import io.zeebe.model.bpmn.util.time.RepeatingInterval;
+import io.zeebe.model.bpmn.util.time.Timer;
 import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
+import java.util.Collection;
+import java.util.Collections;
+import org.agrona.DirectBuffer;
 
-public class ExecutableReceiveTask extends ExecutableActivity implements ExecutableCatchEvent {
+public class ExecutableSubprocess extends ExecutableFlowElementContainer
+    implements ExecutableCatchEvent {
 
-  private ExecutableMessage message;
-
-  public ExecutableReceiveTask(String id) {
+  public ExecutableSubprocess(String id) {
     super(id);
-
-    getEvents().add(this);
-    getInterruptingElementIds().add(this.getId());
   }
 
   @Override
   public boolean isTimer() {
-    return false;
+    return getStartEvents().get(0).isTimer();
   }
 
   @Override
   public boolean isMessage() {
-    return true;
+    return getStartEvents().get(0).isMessage();
   }
 
   @Override
   public ExecutableMessage getMessage() {
-    return message;
+    return getStartEvents().get(0).getMessage();
   }
 
   @Override
-  public RepeatingInterval getTimer() {
-    return null;
+  public Timer getTimer() {
+    return getStartEvents().get(0).getTimer();
   }
 
   @Override
   public TimerType getTimerType() {
-    return TimerType.CATCH;
+    return TimerType.EVENT_SUBPROC;
   }
 
-  public void setMessage(ExecutableMessage message) {
-    this.message = message;
+  @Override
+  public DirectBuffer getEventId() {
+    return getStartEvents().get(0).getId();
+  }
+
+  @Override
+  public Collection<DirectBuffer> getInterruptingElementIds() {
+    return Collections.singletonList(getEventId());
   }
 }
