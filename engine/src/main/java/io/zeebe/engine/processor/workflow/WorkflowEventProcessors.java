@@ -14,6 +14,7 @@ import io.zeebe.engine.processor.workflow.message.CloseWorkflowInstanceSubscript
 import io.zeebe.engine.processor.workflow.message.CorrelateWorkflowInstanceSubscription;
 import io.zeebe.engine.processor.workflow.message.OpenWorkflowInstanceSubscriptionProcessor;
 import io.zeebe.engine.processor.workflow.message.command.SubscriptionCommandSender;
+import io.zeebe.engine.processor.workflow.response.SendResponseHandler;
 import io.zeebe.engine.processor.workflow.timer.CancelTimerProcessor;
 import io.zeebe.engine.processor.workflow.timer.CreateTimerProcessor;
 import io.zeebe.engine.processor.workflow.timer.DueDateTimerChecker;
@@ -158,5 +159,10 @@ public class WorkflowEventProcessors {
         WorkflowInstanceCreationIntent.CREATE,
         new CreateWorkflowInstanceProcessor(
             workflowState, elementInstanceState, variablesState, keyGenerator));
+
+    typedRecordProcessors.onCommand(
+        ValueType.WORKFLOW_INSTANCE_CREATION,
+        WorkflowInstanceCreationIntent.SEND_RESULT,
+        new SendResponseHandler(elementInstanceState));
   }
 }

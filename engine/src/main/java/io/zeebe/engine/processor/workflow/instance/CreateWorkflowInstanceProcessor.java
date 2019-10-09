@@ -99,7 +99,8 @@ public class CreateWorkflowInstanceProcessor
         .setVersion(workflow.getVersion())
         .setWorkflowKey(workflow.getKey());
 
-    controller.accept(WorkflowInstanceCreationIntent.CREATED, record);
+    controller.accept(
+        WorkflowInstanceCreationIntent.CREATED, record, !record.getShouldAwaitCompletion());
   }
 
   private boolean isValidWorkflow(

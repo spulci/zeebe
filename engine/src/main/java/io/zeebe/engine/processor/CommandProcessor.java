@@ -28,6 +28,8 @@ public interface CommandProcessor<T extends UnifiedRecordValue> {
     /** @return the key of the entity */
     long accept(Intent newState, T updatedValue);
 
+    long accept(Intent newState, T updatedValue, boolean shouldResponse);
+
     void reject(RejectionType type, String reason);
   }
 }

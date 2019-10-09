@@ -13,7 +13,9 @@ import io.zeebe.engine.processor.workflow.handlers.AbstractHandler;
 import io.zeebe.engine.processor.workflow.handlers.IOMappingHelper;
 import io.zeebe.engine.state.instance.ElementInstanceState.RequestMetadata;
 import io.zeebe.msgpack.mapping.MappingException;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
+import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
 import io.zeebe.protocol.record.value.ErrorType;
 
@@ -52,23 +54,35 @@ public class ElementCompletingHandler<T extends ExecutableFlowNode> extends Abst
     return false;
   }
 
-  private void sendResponse(BpmnStepContext<T> context) {
-    final long elementInstanceKey = context.getElementInstance().getKey();
-    final RequestMetadata requestMetadata = context.getElementInstanceState()
-      .getRequestMetadata(elementInstanceKey);
-    if(requestMetadata != null) {
-      final WorkflowInstanceRecord record = context.getValue();
-      context.getCommandWriter().appendFollowUpCommand(context.getKey(), WorkflowInstanceIntent.SEND_RESPONSE, record, recordMetadata -> {
-        recordMetadata.requestId(requestMetadata.getRequestId());
-        recordMetadata.requestStreamId((int) requestMetadata.getRequestStreamId());
-      });
-    }
-  }
-
   @Override
   protected boolean shouldHandleState(BpmnStepContext<T> context) {
     return super.shouldHandleState(context)
         && isStateSameAsElementState(context)
         && (isRootScope(context) || isElementActive(context.getFlowScopeInstance()));
+  }
+
+  private void sendResponse(BpmnStepContext<T> context) {
+    final long elementInstanceKey = context.getElementInstance().getKey();
+    final RequestMetadata requestMetadata =
+        context.getElementInstanceState().getRequestMetadata(elementInstanceKey);
+    if (requestMetadata != null) {
+      final WorkflowInstanceRecord record = context.getValue();
+      final WorkflowInstanceCreationRecord newRecord = new WorkflowInstanceCreationRecord();
+      newRecord
+          .setBpmnProcessId(record.getBpmnProcessId())
+          .setWorkflowKey(record.getWorkflowKey())
+          .setWorkflowInstanceKey(record.getWorkflowInstanceKey())
+          .setVersion(record.getVersion());
+      context
+          .getCommandWriter()
+          .appendFollowUpCommand(
+              context.getKey(),
+              WorkflowInstanceCreationIntent.SEND_RESULT,
+              newRecord,
+              recordMetadata -> {
+                recordMetadata.requestId(requestMetadata.getRequestId());
+                recordMetadata.requestStreamId((int) requestMetadata.getRequestStreamId());
+              });
+    }
   }
 }

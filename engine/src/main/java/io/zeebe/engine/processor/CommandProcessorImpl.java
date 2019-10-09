@@ -28,6 +28,8 @@ public class CommandProcessorImpl<T extends UnifiedRecordValue>
   private RejectionType rejectionType;
   private String rejectionReason;
 
+  private boolean shouldRespond;
+
   public CommandProcessorImpl(final CommandProcessor<T> commandProcessor) {
     this.wrappedProcessor = commandProcessor;
   }
@@ -44,9 +46,10 @@ public class CommandProcessorImpl<T extends UnifiedRecordValue>
       final TypedStreamWriter streamWriter) {
 
     entityKey = command.getKey();
+    shouldRespond = true;
     wrappedProcessor.onCommand(command, this, streamWriter);
 
-    final boolean respond = command.hasRequestMetadata();
+    final boolean respond = command.hasRequestMetadata() && shouldRespond;
 
     if (isAccepted) {
       streamWriter.appendFollowUpEvent(entityKey, newState, updatedValue);
@@ -62,11 +65,17 @@ public class CommandProcessorImpl<T extends UnifiedRecordValue>
   }
 
   @Override
-  public long accept(final Intent newState, final T updatedValue) {
+  public long accept(Intent newState, T updatedValue) {
+    return accept(newState, updatedValue, true);
+  }
+
+  @Override
+  public long accept(final Intent newState, final T updatedValue, boolean shouldRespond) {
     if (entityKey < 0) {
       entityKey = keyGenerator.nextKey();
     }
 
+    this.shouldRespond = shouldRespond;
     isAccepted = true;
     this.newState = newState;
     this.updatedValue = updatedValue;

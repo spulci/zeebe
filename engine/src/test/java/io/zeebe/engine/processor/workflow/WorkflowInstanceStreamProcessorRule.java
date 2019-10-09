@@ -146,7 +146,7 @@ public class WorkflowInstanceStreamProcessorRule extends ExternalResource
     deploy(modelInstance, DEPLOYMENT_KEY, VERSION);
   }
 
-  public Record<WorkflowInstanceRecord> createAndReceiveWorkflowInstance(
+  public Record<WorkflowInstanceRecord>  createAndReceiveWorkflowInstance(
       Function<WorkflowInstanceCreationRecord, WorkflowInstanceCreationRecord> transformer) {
     final Record<WorkflowInstanceCreationRecord> createdRecord =
         createWorkflowInstance(transformer);

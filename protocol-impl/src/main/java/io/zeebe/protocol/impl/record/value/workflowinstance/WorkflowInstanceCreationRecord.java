@@ -30,7 +30,7 @@ public class WorkflowInstanceCreationRecord extends UnifiedRecordValue
   private final LongProperty workflowInstanceKeyProperty =
       new LongProperty("workflowInstanceKey", -1);
   private final BooleanProperty shouldAwaitCompletionProperty =
-      new BooleanProperty("shouldAwaitCompletion", false);
+      new BooleanProperty("shouldAwaitCompletion", true);
 
   public WorkflowInstanceCreationRecord() {
     this.declareProperty(bpmnProcessIdProperty)
