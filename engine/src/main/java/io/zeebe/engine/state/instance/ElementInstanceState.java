@@ -7,8 +7,11 @@
  */
 package io.zeebe.engine.state.instance;
 
+import static io.zeebe.db.impl.ZeebeDbConstants.ZB_DB_BYTE_ORDER;
+
 import io.zeebe.db.ColumnFamily;
 import io.zeebe.db.DbContext;
+import io.zeebe.db.DbValue;
 import io.zeebe.db.ZeebeDb;
 import io.zeebe.db.impl.DbByte;
 import io.zeebe.db.impl.DbCompositeKey;
@@ -21,7 +24,9 @@ import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceReco
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
 import java.util.ArrayList;
 import java.util.List;
+import org.agrona.DirectBuffer;
 import org.agrona.ExpandableArrayBuffer;
+import org.agrona.MutableDirectBuffer;
 
 public class ElementInstanceState {
 
@@ -43,6 +48,9 @@ public class ElementInstanceState {
   private final DbCompositeKey<DbLong, DbByte> recordParentStateKey;
   private final ColumnFamily<DbCompositeKey<DbCompositeKey<DbLong, DbByte>, DbLong>, DbNil>
       recordParentChildColumnFamily;
+
+  private final RequestMetadata requestMetadata;
+  private final ColumnFamily<DbLong, RequestMetadata> elementInstanceAwaitResultColumnFamily;
 
   private final ExpandableArrayBuffer copyBuffer = new ExpandableArrayBuffer();
 
@@ -84,6 +92,10 @@ public class ElementInstanceState {
             DbNil.INSTANCE);
 
     variablesState = new VariablesState(zeebeDb, dbContext, keyGenerator);
+    requestMetadata = new RequestMetadata();
+    elementInstanceAwaitResultColumnFamily =
+        zeebeDb.createColumnFamily(
+            ZbColumnFamilies.AWAIT_RESULT, dbContext, elementInstanceKey, requestMetadata);
   }
 
   public ElementInstance newInstance(
@@ -297,8 +309,81 @@ public class ElementInstanceState {
     return null;
   }
 
+  public void setRequestMetadata(long workflowInstanceKey, long requestId, long requestStreamId) {
+    elementInstanceKey.wrapLong(workflowInstanceKey);
+    requestMetadata.setRequestId(requestId);
+    requestMetadata.setRequestStreamId(requestStreamId);
+    elementInstanceAwaitResultColumnFamily.put(elementInstanceKey, requestMetadata);
+  }
+
+  public RequestMetadata getRequestMetadata(long workflowInstanceKey) {
+    elementInstanceKey.wrapLong(workflowInstanceKey);
+    return elementInstanceAwaitResultColumnFamily.get(elementInstanceKey);
+  }
+
   @FunctionalInterface
   public interface RecordVisitor {
     void visitRecord(IndexedRecord indexedRecord);
+  }
+
+  public class RequestMetadata implements DbValue {
+
+    private long requestId;
+    private long requestStreamId; // TODO: -> int
+
+    public RequestMetadata() {}
+
+    public RequestMetadata(long requestId, long requestStreamId) {
+      this.requestId = requestId;
+      this.requestStreamId = requestStreamId;
+    }
+
+    public long getRequestId() {
+      return requestId;
+    }
+
+    public RequestMetadata setRequestId(long requestId) {
+      this.requestId = requestId;
+      return this;
+    }
+
+    public long getRequestStreamId() {
+      return requestStreamId;
+    }
+
+    public RequestMetadata setRequestStreamId(long requestStreamId) {
+      this.requestStreamId = requestStreamId;
+      return this;
+    }
+
+    @Override
+    public void wrap(DirectBuffer buffer, int offset, int length) {
+      final int startOffset = offset;
+      requestId = buffer.getLong(offset, ZB_DB_BYTE_ORDER);
+      offset += Long.BYTES;
+
+      requestStreamId = buffer.getLong(offset, ZB_DB_BYTE_ORDER);
+      offset += Long.BYTES;
+
+      assert (offset - startOffset) == length : "End offset differs from length";
+    }
+
+    @Override
+    public int getLength() {
+      return 2 * Long.BYTES;
+    }
+
+    @Override
+    public void write(MutableDirectBuffer buffer, int offset) {
+      final int startOffset = offset;
+
+      buffer.putLong(offset, requestId, ZB_DB_BYTE_ORDER);
+      offset += Long.BYTES;
+
+      buffer.putLong(offset, requestStreamId, ZB_DB_BYTE_ORDER);
+      offset += Long.BYTES;
+
+      assert (offset - startOffset) == getLength() : "End offset differs from getLength()";
+    }
   }
 }

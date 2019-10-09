@@ -81,16 +81,24 @@ public class CreateWorkflowInstanceProcessor
     }
 
     final ElementInstance workflowInstance = createElementInstance(workflow, workflowInstanceKey);
+
     streamWriter.appendFollowUpEvent(
         workflowInstanceKey,
         WorkflowInstanceIntent.ELEMENT_ACTIVATING,
         workflowInstance.getValue());
+
+    // For create with await result
+    if (record.getShouldAwaitCompletion()) {
+      elementInstanceState.setRequestMetadata(
+          workflowInstanceKey, command.getRequestId(), command.getRequestStreamId());
+    }
 
     record
         .setWorkflowInstanceKey(workflowInstanceKey)
         .setBpmnProcessId(workflow.getBpmnProcessId())
         .setVersion(workflow.getVersion())
         .setWorkflowKey(workflow.getKey());
+
     controller.accept(WorkflowInstanceCreationIntent.CREATED, record);
   }
 

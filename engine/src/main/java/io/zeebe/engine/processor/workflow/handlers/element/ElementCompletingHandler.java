@@ -11,7 +11,9 @@ import io.zeebe.engine.processor.workflow.BpmnStepContext;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableFlowNode;
 import io.zeebe.engine.processor.workflow.handlers.AbstractHandler;
 import io.zeebe.engine.processor.workflow.handlers.IOMappingHelper;
+import io.zeebe.engine.state.instance.ElementInstanceState.RequestMetadata;
 import io.zeebe.msgpack.mapping.MappingException;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
 import io.zeebe.protocol.record.value.ErrorType;
 
@@ -41,12 +43,26 @@ public class ElementCompletingHandler<T extends ExecutableFlowNode> extends Abst
   protected boolean handleState(BpmnStepContext<T> context) {
     try {
       ioMappingHelper.applyOutputMappings(context);
+      sendResponse(context);
       return true;
     } catch (MappingException e) {
       context.raiseIncident(ErrorType.IO_MAPPING_ERROR, e.getMessage());
     }
 
     return false;
+  }
+
+  private void sendResponse(BpmnStepContext<T> context) {
+    final long elementInstanceKey = context.getElementInstance().getKey();
+    final RequestMetadata requestMetadata = context.getElementInstanceState()
+      .getRequestMetadata(elementInstanceKey);
+    if(requestMetadata != null) {
+      final WorkflowInstanceRecord record = context.getValue();
+      context.getCommandWriter().appendFollowUpCommand(context.getKey(), WorkflowInstanceIntent.SEND_RESPONSE, record, recordMetadata -> {
+        recordMetadata.requestId(requestMetadata.getRequestId());
+        recordMetadata.requestStreamId((int) requestMetadata.getRequestStreamId());
+      });
+    }
   }
 
   @Override
