@@ -12,6 +12,7 @@ import static io.zeebe.util.buffer.BufferUtil.readIntoBuffer;
 import static io.zeebe.util.buffer.BufferUtil.writeIntoBuffer;
 
 import io.zeebe.db.DbValue;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import org.agrona.DirectBuffer;
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
@@ -27,6 +28,7 @@ public class TimerInstance implements DbValue {
   private long workflowInstanceKey;
   private long dueDate;
   private int repetitions;
+  private TimerType timerType;
 
   public long getElementInstanceKey() {
     return elementInstanceKey;
@@ -84,9 +86,17 @@ public class TimerInstance implements DbValue {
     this.workflowInstanceKey = workflowInstanceKey;
   }
 
+  public TimerType getTimerType() {
+    return timerType;
+  }
+
+  public void setTimerStart(TimerType type) {
+    this.timerType = type;
+  }
+
   @Override
   public int getLength() {
-    return 5 * Long.BYTES + 2 * Integer.BYTES + handlerNodeId.capacity();
+    return 5 * Long.BYTES + 3 * Integer.BYTES + handlerNodeId.capacity();
   }
 
   @Override
@@ -107,6 +117,9 @@ public class TimerInstance implements DbValue {
     offset += Long.BYTES;
 
     buffer.putInt(offset, repetitions, ZB_DB_BYTE_ORDER);
+    offset += Integer.BYTES;
+
+    buffer.putInt(offset, timerType.ordinal(), ZB_DB_BYTE_ORDER);
     offset += Integer.BYTES;
 
     offset = writeIntoBuffer(buffer, offset, handlerNodeId);
@@ -131,6 +144,9 @@ public class TimerInstance implements DbValue {
     offset += Long.BYTES;
 
     repetitions = buffer.getInt(offset, ZB_DB_BYTE_ORDER);
+    offset += Integer.BYTES;
+
+    timerType = TimerType.values()[buffer.getInt(offset, ZB_DB_BYTE_ORDER)];
     offset += Integer.BYTES;
 
     offset = readIntoBuffer(buffer, offset, handlerNodeId);

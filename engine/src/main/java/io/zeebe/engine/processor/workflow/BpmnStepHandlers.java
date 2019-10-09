@@ -25,7 +25,9 @@ import io.zeebe.engine.processor.workflow.handlers.catchevent.IntermediateCatchE
 import io.zeebe.engine.processor.workflow.handlers.catchevent.IntermediateCatchEventEventOccurredHandler;
 import io.zeebe.engine.processor.workflow.handlers.catchevent.StartEventEventOccurredHandler;
 import io.zeebe.engine.processor.workflow.handlers.container.ContainerElementActivatedHandler;
+import io.zeebe.engine.processor.workflow.handlers.container.ContainerElementActivatingHandler;
 import io.zeebe.engine.processor.workflow.handlers.container.ContainerElementTerminatingHandler;
+import io.zeebe.engine.processor.workflow.handlers.container.ContainerEventOccurredHandler;
 import io.zeebe.engine.processor.workflow.handlers.container.ProcessCompletedHandler;
 import io.zeebe.engine.processor.workflow.handlers.element.ElementActivatedHandler;
 import io.zeebe.engine.processor.workflow.handlers.element.ElementActivatingHandler;
@@ -89,12 +91,16 @@ public class BpmnStepHandlers {
         new ActivityElementTerminatedHandler<>(incidentResolver));
 
     stepHandlers.put(
+        BpmnStep.CONTAINER_ELEMENT_ACTIVATING,
+        new ContainerElementActivatingHandler<>(state.getWorkflowState(), catchEventSubscriber));
+    stepHandlers.put(
         BpmnStep.CONTAINER_ELEMENT_ACTIVATED,
         new ContainerElementActivatedHandler<>(state.getWorkflowState()));
     stepHandlers.put(
         BpmnStep.CONTAINER_ELEMENT_TERMINATING,
         new ContainerElementTerminatingHandler<>(catchEventSubscriber));
     stepHandlers.put(BpmnStep.PROCESS_COMPLETED, new ProcessCompletedHandler());
+    stepHandlers.put(BpmnStep.CONTAINER_EVENT_OCCURRED, new ContainerEventOccurredHandler<>());
 
     stepHandlers.put(
         BpmnStep.EVENT_BASED_GATEWAY_ELEMENT_ACTIVATING,

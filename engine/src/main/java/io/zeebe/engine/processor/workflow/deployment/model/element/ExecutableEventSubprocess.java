@@ -11,60 +11,47 @@ import io.zeebe.model.bpmn.util.time.Timer;
 import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import org.agrona.DirectBuffer;
 
-public class ExecutableCatchEventElement extends ExecutableFlowNode
-    implements ExecutableCatchEvent, ExecutableCatchEventSupplier {
-  private final List<ExecutableCatchEvent> events = Collections.singletonList(this);
+public class ExecutableEventSubprocess extends ExecutableFlowElementContainer
+    implements ExecutableCatchEvent {
 
-  private ExecutableMessage message;
-  private Timer timer;
-
-  public ExecutableCatchEventElement(String id) {
+  public ExecutableEventSubprocess(String id) {
     super(id);
   }
 
   @Override
   public boolean isTimer() {
-    return timer != null;
+    return getStartEvents().get(0).isTimer();
   }
 
   @Override
   public boolean isMessage() {
-    return message != null;
+    return getStartEvents().get(0).isMessage();
   }
 
   @Override
   public ExecutableMessage getMessage() {
-    return message;
-  }
-
-  public void setMessage(ExecutableMessage message) {
-    this.message = message;
+    return getStartEvents().get(0).getMessage();
   }
 
   @Override
   public Timer getTimer() {
-    return timer;
+    return getStartEvents().get(0).getTimer();
   }
 
   @Override
   public TimerType getTimerType() {
-    return TimerType.CATCH;
-  }
-
-  public void setTimer(Timer timer) {
-    this.timer = timer;
+    return TimerType.EVENT_SUBPROC;
   }
 
   @Override
-  public List<ExecutableCatchEvent> getEvents() {
-    return events;
+  public DirectBuffer getEventId() {
+    return getStartEvents().get(0).getId();
   }
 
   @Override
   public Collection<DirectBuffer> getInterruptingElementIds() {
-    return Collections.singleton(getId());
+    return Collections.singletonList(getEventId());
   }
 }

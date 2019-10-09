@@ -17,6 +17,7 @@ import io.zeebe.engine.state.instance.TimerInstance;
 import io.zeebe.model.bpmn.util.time.TimeDateTimer;
 import io.zeebe.msgpack.UnpackedObject;
 import io.zeebe.protocol.impl.record.value.timer.TimerRecord;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import io.zeebe.protocol.record.intent.TimerIntent;
 import java.util.Random;
 import org.agrona.concurrent.UnsafeBuffer;
@@ -65,6 +66,7 @@ public class CatchEventBehaviorTest {
         workflowKey,
         new UnsafeBuffer(handlerNodeId),
         timer,
+        TimerType.START,
         streamWriter);
 
     // then
@@ -76,6 +78,7 @@ public class CatchEventBehaviorTest {
     assertThat(record.getWorkflowKey()).isEqualTo(workflowKey);
     assertThat(record.getRepetitions()).isEqualTo(repetitions);
     assertThat(record.getDueDate()).isEqualTo(dueDate);
+    assertThat(record.getTimerType()).isEqualTo(TimerType.START);
   }
 
   @Test

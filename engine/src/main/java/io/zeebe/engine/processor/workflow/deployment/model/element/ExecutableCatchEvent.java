@@ -8,6 +8,8 @@
 package io.zeebe.engine.processor.workflow.deployment.model.element;
 
 import io.zeebe.model.bpmn.util.time.Timer;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
+import org.agrona.DirectBuffer;
 
 public interface ExecutableCatchEvent extends ExecutableFlowElement {
   boolean isTimer();
@@ -25,4 +27,10 @@ public interface ExecutableCatchEvent extends ExecutableFlowElement {
   }
 
   Timer getTimer();
+
+  TimerType getTimerType();
+
+  default DirectBuffer getEventId() {
+    return getId();
+  }
 }

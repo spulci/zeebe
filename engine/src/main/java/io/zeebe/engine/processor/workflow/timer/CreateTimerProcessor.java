@@ -52,6 +52,7 @@ public class CreateTimerProcessor implements TypedRecordProcessor<TimerRecord> {
     timerInstance.setRepetitions(timer.getRepetitions());
     timerInstance.setWorkflowKey(timer.getWorkflowKey());
     timerInstance.setWorkflowInstanceKey(timer.getWorkflowInstanceKey());
+    timerInstance.setTimerStart(timer.getTimerType());
 
     sideEffect.accept(this::scheduleTimer);
 

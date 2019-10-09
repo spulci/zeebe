@@ -8,6 +8,7 @@
 package io.zeebe.engine.processor.workflow.deployment.model.element;
 
 import io.zeebe.model.bpmn.util.time.RepeatingInterval;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 
 public class ExecutableReceiveTask extends ExecutableActivity implements ExecutableCatchEvent {
 
@@ -38,6 +39,11 @@ public class ExecutableReceiveTask extends ExecutableActivity implements Executa
   @Override
   public RepeatingInterval getTimer() {
     return null;
+  }
+
+  @Override
+  public TimerType getTimerType() {
+    return TimerType.CATCH;
   }
 
   public void setMessage(ExecutableMessage message) {

@@ -23,6 +23,7 @@ import io.zeebe.engine.state.deployment.WorkflowState;
 import io.zeebe.engine.state.instance.TimerInstance;
 import io.zeebe.protocol.impl.record.value.deployment.DeploymentRecord;
 import io.zeebe.protocol.impl.record.value.deployment.Workflow;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import io.zeebe.protocol.record.RejectionType;
 import io.zeebe.protocol.record.intent.DeploymentIntent;
 import java.util.Collections;
@@ -101,6 +102,7 @@ public class TransformingDeploymentCreateProcessor
               workflow.getKey(),
               startEvent.getId(),
               startEvent.getTimer(),
+              TimerType.START,
               streamWriter);
         }
       }

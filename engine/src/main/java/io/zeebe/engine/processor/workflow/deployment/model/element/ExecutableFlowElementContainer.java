@@ -19,11 +19,10 @@ import java.util.List;
  */
 public class ExecutableFlowElementContainer extends ExecutableActivity {
 
-  private final List<ExecutableCatchEventElement> startEvents;
+  private final List<ExecutableCatchEventElement> startEvents = new ArrayList<>();
 
   public ExecutableFlowElementContainer(String id) {
     super(id);
-    startEvents = new ArrayList<>();
   }
 
   public ExecutableCatchEventElement getNoneStartEvent() {

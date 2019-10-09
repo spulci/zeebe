@@ -60,9 +60,7 @@ public class ProcessBuilder extends AbstractProcessBuilder<ProcessBuilder> {
     resizeSubProcess(targetBpmnShape);
 
     // Return the eventSubProcessBuilder
-    final EventSubProcessBuilder eventSubProcessBuilder =
-        new EventSubProcessBuilder(modelInstance, subProcess);
-    return eventSubProcessBuilder;
+    return new EventSubProcessBuilder(modelInstance, subProcess);
   }
 
   @Override

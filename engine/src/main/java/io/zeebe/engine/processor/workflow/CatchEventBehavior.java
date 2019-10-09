@@ -27,6 +27,7 @@ import io.zeebe.msgpack.query.MsgPackQueryProcessor.QueryResult;
 import io.zeebe.msgpack.query.MsgPackQueryProcessor.QueryResults;
 import io.zeebe.protocol.impl.SubscriptionUtil;
 import io.zeebe.protocol.impl.record.value.timer.TimerRecord;
+import io.zeebe.protocol.impl.record.value.timer.TimerRecord.TimerType;
 import io.zeebe.protocol.record.intent.TimerIntent;
 import io.zeebe.protocol.record.value.BpmnElementType;
 import io.zeebe.util.sched.clock.ActorClock;
@@ -82,18 +83,26 @@ public class CatchEventBehavior {
             context.getKey(),
             context.getValue().getWorkflowInstanceKey(),
             context.getValue().getWorkflowKey(),
-            event.getId(),
+            event.getEventId(),
             event.getTimer(),
+            event.getTimerType(),
             context.getOutput().getStreamWriter());
       } else if (event.isMessage()) {
         subscribeToMessageEvent(context, event, extractedCorrelationKeys.get(event.getId()));
       }
     }
 
-    context
-        .getStateDb()
-        .getEventScopeInstanceState()
-        .createIfNotExists(context.getKey(), supplier.getInterruptingElementIds());
+    if (!events.isEmpty()) {
+      long scopeKey = context.getKey();
+      if (timerRecord.getTimerType() == TimerType.EVENT_SUBPROC) {
+        scopeKey = context.getValue().getWorkflowKey();
+      }
+
+      context
+          .getStateDb()
+          .getEventScopeInstanceState()
+          .createIfNotExists(scopeKey, supplier.getInterruptingElementIds());
+    }
   }
 
   public void subscribeToTimerEvent(
@@ -102,6 +111,7 @@ public class CatchEventBehavior {
       long workflowKey,
       DirectBuffer handlerNodeId,
       Timer timer,
+      TimerType type,
       TypedStreamWriter writer) {
     timerRecord.reset();
     timerRecord
@@ -110,7 +120,8 @@ public class CatchEventBehavior {
         .setElementInstanceKey(elementInstanceKey)
         .setWorkflowInstanceKey(workflowInstanceKey)
         .setTargetElementId(handlerNodeId)
-        .setWorkflowKey(workflowKey);
+        .setWorkflowKey(workflowKey)
+        .setTimerType(type);
     writer.appendNewCommand(TimerIntent.CREATE, timerRecord);
   }
 
@@ -130,7 +141,8 @@ public class CatchEventBehavior {
         .setDueDate(timer.getDueDate())
         .setRepetitions(timer.getRepetitions())
         .setTargetElementId(timer.getHandlerNodeId())
-        .setWorkflowKey(timer.getWorkflowKey());
+        .setWorkflowKey(timer.getWorkflowKey())
+        .setTimerType(timer.getTimerType());
 
     writer.appendFollowUpCommand(timer.getKey(), TimerIntent.CANCEL, timerRecord);
   }
