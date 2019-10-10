@@ -98,5 +98,7 @@ public interface CreateWorkflowInstanceCommandStep1 {
      *     it to the broker.
      */
     CreateWorkflowInstanceCommandStep3 variables(Object variables);
+
+    CreateWorkflowInstanceCommandStep3 awaitCompletion();
   }
 }

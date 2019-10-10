@@ -154,11 +154,18 @@ public class WorkflowEventProcessors {
     final VariablesState variablesState = elementInstanceState.getVariablesState();
     final KeyGenerator keyGenerator = zeebeState.getKeyGenerator();
 
+    final CreateWorkflowInstanceProcessor createInstanceProcessor =
+        new CreateWorkflowInstanceProcessor(
+            workflowState, elementInstanceState, variablesState, keyGenerator);
     typedRecordProcessors.onCommand(
         ValueType.WORKFLOW_INSTANCE_CREATION,
         WorkflowInstanceCreationIntent.CREATE,
-        new CreateWorkflowInstanceProcessor(
-            workflowState, elementInstanceState, variablesState, keyGenerator));
+        createInstanceProcessor);
+
+    typedRecordProcessors.onCommand(
+        ValueType.WORKFLOW_INSTANCE_CREATION,
+        WorkflowInstanceCreationIntent.CREATE_WITH_AWAIT_RESULT,
+        createInstanceProcessor);
 
     typedRecordProcessors.onCommand(
         ValueType.WORKFLOW_INSTANCE_CREATION,

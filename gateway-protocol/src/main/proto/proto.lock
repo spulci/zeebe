@@ -233,6 +233,46 @@
             ]
           },
           {
+            "name": "CreateWorkflowInstanceWithResultsRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "request",
+                "type": "CreateWorkflowInstanceRequest"
+              }
+            ]
+          },
+          {
+            "name": "CreateWorkflowInstanceWithResultsResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workflowKey",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "bpmnProcessId",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "version",
+                "type": "int32"
+              },
+              {
+                "id": 4,
+                "name": "workflowInstanceKey",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "variables",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "DeployWorkflowRequest",
             "fields": [
               {
@@ -509,6 +549,11 @@
                 "name": "CreateWorkflowInstance",
                 "in_type": "CreateWorkflowInstanceRequest",
                 "out_type": "CreateWorkflowInstanceResponse"
+              },
+              {
+                "name": "CreateWorkflowInstanceWithResults",
+                "in_type": "CreateWorkflowInstanceWithResultsRequest",
+                "out_type": "CreateWorkflowInstanceWithResultsResponse"
               },
               {
                 "name": "DeployWorkflow",

@@ -28,4 +28,6 @@ public interface WorkflowInstanceEvent {
 
   /** Unique key of the created workflow instance on the partition */
   long getWorkflowInstanceKey();
+
+  String getVariables();
 }

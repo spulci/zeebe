@@ -281,6 +281,23 @@ public class CreateWorkflowInstanceTest {
     clientRule.getClient().newCreateInstanceCommand().workflowKey(99L).send().join();
   }
 
+  @Test
+  public void shouldCreateWorkflowInstanceAwaitResults() {
+    final Map<String, Object> variables = Maps.of(entry("foo", "bar"));
+    final WorkflowInstanceEvent result = clientRule
+      .getClient()
+      .newCreateInstanceCommand()
+      .bpmnProcessId(processId)
+      .latestVersion()
+      .variables(variables)
+      .awaitCompletion()
+      .send()
+      .join();
+
+    assertThat(result.getBpmnProcessId()).isEqualTo(processId);
+    assertThat(result.getVariables()).isEqualTo(variables);
+  }
+
   private Map<String, String> getInitialVariableRecords(WorkflowInstanceEvent event) {
     final List<Record<WorkflowInstanceCreationRecordValue>> bounds =
         RecordingExporter.workflowInstanceCreationRecords()

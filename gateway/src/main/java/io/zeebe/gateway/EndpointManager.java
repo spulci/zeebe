@@ -34,6 +34,8 @@ import io.zeebe.gateway.protocol.GatewayOuterClass.CompleteJobRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CompleteJobResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceResponse;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsRequest;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.DeployWorkflowRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.DeployWorkflowResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.FailJobRequest;
@@ -138,6 +140,17 @@ public class EndpointManager extends GatewayGrpc.GatewayImplBase {
         request,
         RequestMapper::toCreateWorkflowInstanceRequest,
         ResponseMapper::toCreateWorkflowInstanceResponse,
+        responseObserver);
+  }
+
+  @Override
+  public void createWorkflowInstanceWithResults(
+      CreateWorkflowInstanceWithResultsRequest request,
+      StreamObserver<CreateWorkflowInstanceWithResultsResponse> responseObserver) {
+    sendRequest(
+        request,
+        RequestMapper::toBlockingCreateWorkflowInstanceRequest,
+        ResponseMapper::toBlockingCreateWorkflowInstanceResponse,
         responseObserver);
   }
 

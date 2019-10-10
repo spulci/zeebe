@@ -21,6 +21,16 @@ public class BrokerCreateWorkflowInstanceRequest
     super(ValueType.WORKFLOW_INSTANCE_CREATION, WorkflowInstanceCreationIntent.CREATE);
   }
 
+  private BrokerCreateWorkflowInstanceRequest(WorkflowInstanceCreationIntent intent) {
+    super(ValueType.WORKFLOW_INSTANCE_CREATION, intent);
+  }
+
+  public static BrokerCreateWorkflowInstanceRequest
+      newBrokerCreateWorkflowInstanceBlockingRequest() {
+    return new BrokerCreateWorkflowInstanceRequest(
+        WorkflowInstanceCreationIntent.CREATE_WITH_AWAIT_RESULT);
+  }
+
   public BrokerCreateWorkflowInstanceRequest setBpmnProcessId(String bpmnProcessId) {
     requestDto.setBpmnProcessId(bpmnProcessId);
     return this;

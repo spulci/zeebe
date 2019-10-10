@@ -25,10 +25,13 @@ import io.zeebe.client.api.response.WorkflowInstanceEvent;
 import io.zeebe.client.impl.RetriableClientFutureImpl;
 import io.zeebe.client.impl.ZeebeObjectMapper;
 import io.zeebe.client.impl.response.CreateWorkflowInstanceResponseImpl;
+import io.zeebe.client.impl.response.CreateWorkflowInstanceWithResultsResponseImpl;
 import io.zeebe.gateway.protocol.GatewayGrpc.GatewayStub;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceRequest.Builder;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceResponse;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsRequest;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsResponse;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
@@ -45,6 +48,7 @@ public class CreateWorkflowInstanceCommandImpl
   private final Builder builder;
   private final Predicate<Throwable> retryPredicate;
   private Duration requestTimeout;
+  private boolean blocking = false;
 
   public CreateWorkflowInstanceCommandImpl(
       GatewayStub asyncStub,
@@ -83,6 +87,12 @@ public class CreateWorkflowInstanceCommandImpl
   }
 
   @Override
+  public CreateWorkflowInstanceCommandStep3 awaitCompletion() {
+    this.blocking = true;
+    return this;
+  }
+
+  @Override
   public CreateWorkflowInstanceCommandStep2 bpmnProcessId(final String id) {
     builder.setBpmnProcessId(id);
     return this;
@@ -114,6 +124,18 @@ public class CreateWorkflowInstanceCommandImpl
   @Override
   public ZeebeFuture<WorkflowInstanceEvent> send() {
     final CreateWorkflowInstanceRequest request = builder.build();
+    if (blocking) {
+      CreateWorkflowInstanceWithResultsRequest blockingRequest =
+          CreateWorkflowInstanceWithResultsRequest.newBuilder().setRequest(builder.build()).build();
+      final RetriableClientFutureImpl<WorkflowInstanceEvent, CreateWorkflowInstanceWithResultsResponse> future =
+        new RetriableClientFutureImpl<>(
+          CreateWorkflowInstanceWithResultsResponseImpl::new,
+          retryPredicate,
+          streamObserver -> sendWithResponse(blockingRequest, streamObserver));
+
+      sendWithResponse(blockingRequest, future);
+      return future;
+    }
 
     final RetriableClientFutureImpl<WorkflowInstanceEvent, CreateWorkflowInstanceResponse> future =
         new RetriableClientFutureImpl<>(
@@ -132,6 +154,15 @@ public class CreateWorkflowInstanceCommandImpl
         .withDeadlineAfter(requestTimeout.toMillis(), TimeUnit.MILLISECONDS)
         .createWorkflowInstance(request, future);
   }
+
+  private void sendWithResponse(
+    CreateWorkflowInstanceWithResultsRequest request,
+    StreamObserver<CreateWorkflowInstanceWithResultsResponse> future) {
+    asyncStub
+      .withDeadlineAfter(requestTimeout.toMillis(), TimeUnit.MILLISECONDS)
+      .createWorkflowInstanceWithResults(request, future);
+  }
+
 
   private CreateWorkflowInstanceCommandStep3 setVariables(String jsonDocument) {
     builder.setVariables(jsonDocument);

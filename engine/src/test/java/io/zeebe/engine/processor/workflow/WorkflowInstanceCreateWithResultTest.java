@@ -1,3 +1,10 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH under
+ * one or more contributor license agreements. See the NOTICE file distributed
+ * with this work for additional information regarding copyright ownership.
+ * Licensed under the Zeebe Community License 1.0. You may not use this file
+ * except in compliance with the Zeebe Community License 1.0.
+ */
 package io.zeebe.engine.processor.workflow;
 
 import static io.zeebe.test.util.TestUtil.waitUntil;
@@ -8,8 +15,6 @@ import io.zeebe.engine.util.StreamProcessorRule;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.BpmnModelInstance;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
-import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
-import io.zeebe.protocol.record.Record;
 import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
 import io.zeebe.test.util.MsgPackUtil;
 import java.util.concurrent.TimeUnit;
@@ -35,8 +40,7 @@ public class WorkflowInstanceCreateWithResultTest {
     // given
     streamProcessorRule.deploy(SERVICE_TASK_WORKFLOW);
 
-    final Record<WorkflowInstanceRecord> createdEvent =
-        streamProcessorRule.createAndReceiveWorkflowInstance(r -> r.setBpmnProcessId(PROCESS_ID));
+    streamProcessorRule.createWorkflowInstanceBlocking(r -> r.setBpmnProcessId(PROCESS_ID));
 
     // then
     waitUntil(
@@ -51,20 +55,24 @@ public class WorkflowInstanceCreateWithResultTest {
     // given
     streamProcessorRule.deploy(SERVICE_TASK_WORKFLOW);
 
-    String variables = "{'x':1}";
-    final Record<WorkflowInstanceRecord> createdEvent =
-      streamProcessorRule.createAndReceiveWorkflowInstance(r -> r.setBpmnProcessId(PROCESS_ID).setVariables(
-        MsgPackUtil.asMsgPack(variables)));
+    final String variables = "{'x':1}";
+    streamProcessorRule.createWorkflowInstanceBlocking(
+        r -> r.setBpmnProcessId(PROCESS_ID).setVariables(MsgPackUtil.asMsgPack(variables)));
 
     // then
-    final WorkflowInstanceCreationRecord result = envRule.events()
-      .onlyWorkflowInstanceCreationRecords()
-      .withIntent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT).findFirst().get().getValue();
+    final WorkflowInstanceCreationRecord result =
+        envRule
+            .events()
+            .onlyWorkflowInstanceCreationRecords()
+            .withIntent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT)
+            .findFirst()
+            .get()
+            .getValue();
 
     assertThat(result.getVariables().containsKey("x")).isTrue();
     assertThat(result.getVariables().get("x")).isEqualTo(1);
 
     Mockito.verify(envRule.getCommandResponseWriter(), times(1))
-      .intent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT);
+        .intent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT);
   }
 }

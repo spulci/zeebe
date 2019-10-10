@@ -146,7 +146,7 @@ public class WorkflowInstanceStreamProcessorRule extends ExternalResource
     deploy(modelInstance, DEPLOYMENT_KEY, VERSION);
   }
 
-  public Record<WorkflowInstanceRecord>  createAndReceiveWorkflowInstance(
+  public Record<WorkflowInstanceRecord> createAndReceiveWorkflowInstance(
       Function<WorkflowInstanceCreationRecord, WorkflowInstanceCreationRecord> transformer) {
     final Record<WorkflowInstanceCreationRecord> createdRecord =
         createWorkflowInstance(transformer);
@@ -162,6 +162,21 @@ public class WorkflowInstanceStreamProcessorRule extends ExternalResource
     final long position =
         environmentRule.writeCommand(
             WorkflowInstanceCreationIntent.CREATE,
+            transformer.apply(new WorkflowInstanceCreationRecord()));
+
+    return awaitAndGetFirstRecord(
+        ValueType.WORKFLOW_INSTANCE_CREATION,
+        (e) ->
+            e.getSourceRecordPosition() == position
+                && e.getIntent() == WorkflowInstanceCreationIntent.CREATED,
+        new WorkflowInstanceCreationRecord());
+  }
+
+  public Record<WorkflowInstanceCreationRecord> createWorkflowInstanceBlocking(
+      Function<WorkflowInstanceCreationRecord, WorkflowInstanceCreationRecord> transformer) {
+    final long position =
+        environmentRule.writeCommand(
+            WorkflowInstanceCreationIntent.CREATE_WITH_AWAIT_RESULT,
             transformer.apply(new WorkflowInstanceCreationRecord()));
 
     return awaitAndGetFirstRecord(

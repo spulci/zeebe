@@ -21,6 +21,7 @@ import io.zeebe.gateway.protocol.GatewayOuterClass.ActivateJobsRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CancelWorkflowInstanceRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CompleteJobRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceRequest;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.DeployWorkflowRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.FailJobRequest;
 import io.zeebe.gateway.protocol.GatewayOuterClass.PublishMessageRequest;
@@ -85,6 +86,20 @@ public class RequestMapper {
         .setKey(grpcRequest.getWorkflowKey())
         .setVersion(grpcRequest.getVersion())
         .setVariables(ensureJsonSet(grpcRequest.getVariables()));
+
+    return brokerRequest;
+  }
+
+  public static BrokerCreateWorkflowInstanceRequest toBlockingCreateWorkflowInstanceRequest(
+      CreateWorkflowInstanceWithResultsRequest grpcRequest) {
+    final BrokerCreateWorkflowInstanceRequest brokerRequest =
+        BrokerCreateWorkflowInstanceRequest.newBrokerCreateWorkflowInstanceBlockingRequest();
+
+    brokerRequest
+        .setBpmnProcessId(grpcRequest.getRequest().getBpmnProcessId())
+        .setKey(grpcRequest.getRequest().getWorkflowKey())
+        .setVersion(grpcRequest.getRequest().getVersion())
+        .setVariables(ensureJsonSet(grpcRequest.getRequest().getVariables()));
 
     return brokerRequest;
   }

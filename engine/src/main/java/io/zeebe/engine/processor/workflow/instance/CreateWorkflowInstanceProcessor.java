@@ -88,7 +88,7 @@ public class CreateWorkflowInstanceProcessor
         workflowInstance.getValue());
 
     // For create with await result
-    if (record.getShouldAwaitCompletion()) {
+    if (command.getIntent() == WorkflowInstanceCreationIntent.CREATE_WITH_AWAIT_RESULT) {
       elementInstanceState.setRequestMetadata(
           workflowInstanceKey, command.getRequestId(), command.getRequestStreamId());
     }
@@ -100,7 +100,9 @@ public class CreateWorkflowInstanceProcessor
         .setWorkflowKey(workflow.getKey());
 
     controller.accept(
-        WorkflowInstanceCreationIntent.CREATED, record, !record.getShouldAwaitCompletion());
+        WorkflowInstanceCreationIntent.CREATED,
+        record,
+        command.getIntent() != WorkflowInstanceCreationIntent.CREATE_WITH_AWAIT_RESULT);
   }
 
   private boolean isValidWorkflow(

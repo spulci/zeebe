@@ -8,7 +8,6 @@
 package io.zeebe.protocol.impl.record.value.workflowinstance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.zeebe.msgpack.property.BooleanProperty;
 import io.zeebe.msgpack.property.DocumentProperty;
 import io.zeebe.msgpack.property.IntegerProperty;
 import io.zeebe.msgpack.property.LongProperty;
@@ -29,16 +28,13 @@ public class WorkflowInstanceCreationRecord extends UnifiedRecordValue
   private final DocumentProperty variablesProperty = new DocumentProperty("variables");
   private final LongProperty workflowInstanceKeyProperty =
       new LongProperty("workflowInstanceKey", -1);
-  private final BooleanProperty shouldAwaitCompletionProperty =
-      new BooleanProperty("shouldAwaitCompletion", true);
 
   public WorkflowInstanceCreationRecord() {
     this.declareProperty(bpmnProcessIdProperty)
         .declareProperty(workflowKeyProperty)
         .declareProperty(workflowInstanceKeyProperty)
         .declareProperty(versionProperty)
-        .declareProperty(variablesProperty)
-        .declareProperty(shouldAwaitCompletionProperty);
+        .declareProperty(variablesProperty);
   }
 
   @Override
@@ -103,14 +99,5 @@ public class WorkflowInstanceCreationRecord extends UnifiedRecordValue
   @JsonIgnore
   public DirectBuffer getVariablesBuffer() {
     return variablesProperty.getValue();
-  }
-
-  public boolean getShouldAwaitCompletion() {
-    return shouldAwaitCompletionProperty.getValue();
-  }
-
-  public WorkflowInstanceCreationRecord setShouldAwaitCompletion(boolean shouldAwaitCompletion) {
-    shouldAwaitCompletionProperty.setValue(shouldAwaitCompletion);
-    return this;
   }
 }

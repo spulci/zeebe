@@ -113,6 +113,24 @@ message CreateWorkflowInstanceResponse {
   int64 workflowInstanceKey = 4;
 }
 
+message CreateWorkflowInstanceWithResultsRequest {
+  CreateWorkflowInstanceRequest request = 1;
+}
+
+message CreateWorkflowInstanceWithResultsResponse {
+  // the key of the workflow definition which was used to create the workflow instance
+  int64 workflowKey = 1;
+  // the BPMN process ID of the workflow definition which was used to create the workflow
+  // instance
+  string bpmnProcessId = 2;
+  // the version of the workflow definition which was used to create the workflow instance
+  int32 version = 3;
+  // the unique identifier of the created workflow instance; to be used wherever a request
+  // needs a workflow instance key (e.g. CancelWorkflowInstanceRequest)
+  int64 workflowInstanceKey = 4;
+  string variables = 5;
+}
+
 message DeployWorkflowRequest {
   // List of workflow resources to deploy
   repeated WorkflowRequestObject workflows = 1;
@@ -329,6 +347,29 @@ service Gateway {
   rpc CreateWorkflowInstance (CreateWorkflowInstanceRequest) returns (CreateWorkflowInstanceResponse) {
   }
 
+  /*
+    Creates and starts an instance of the specified workflow. The workflow definition to use to
+    create the instance can be specified either using its unique key (as returned by
+    DeployWorkflow), or using the BPMN process ID and a version. Pass -1 as the version to use the
+    latest deployed version. Note that only workflows with none start events can be started through
+    this command.
+
+    Errors:
+      NOT_FOUND:
+        - no workflow with the given key exists (if workflowKey was given)
+        - no workflow with the given process ID exists (if bpmnProcessId was given but version was -1)
+        - no workflow with the given process ID and version exists (if both bpmnProcessId and version were given)
+
+      FAILED_PRECONDITION:
+        - the workflow definition does not contain a none start event; only workflows with none
+          start event can be started manually.
+
+      INVALID_ARGUMENT:
+        - the given variables argument is not a valid JSON document; it is expected to be a valid
+          JSON document where the root node is an object.
+   */
+  rpc CreateWorkflowInstanceWithResults (CreateWorkflowInstanceWithResultsRequest) returns (CreateWorkflowInstanceWithResultsResponse) {
+  }
   /*
     Deploys one or more workflows to Zeebe. Note that this is an atomic call,
     i.e. either all workflows are deployed, or none of them are.

@@ -15,6 +15,7 @@ import io.zeebe.gateway.protocol.GatewayOuterClass.ActivatedJob;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CancelWorkflowInstanceResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CompleteJobResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceResponse;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.DeployWorkflowResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.FailJobResponse;
 import io.zeebe.gateway.protocol.GatewayOuterClass.PublishMessageResponse;
@@ -78,6 +79,17 @@ public class ResponseMapper {
         .setBpmnProcessId(bufferAsString(brokerResponse.getBpmnProcessIdBuffer()))
         .setVersion(brokerResponse.getVersion())
         .setWorkflowInstanceKey(brokerResponse.getWorkflowInstanceKey())
+        .build();
+  }
+
+  public static CreateWorkflowInstanceWithResultsResponse toBlockingCreateWorkflowInstanceResponse(
+      long key, WorkflowInstanceCreationRecord brokerResponse) {
+    return CreateWorkflowInstanceWithResultsResponse.newBuilder()
+        .setWorkflowKey(brokerResponse.getWorkflowKey())
+        .setBpmnProcessId(bufferAsString(brokerResponse.getBpmnProcessIdBuffer()))
+        .setVersion(brokerResponse.getVersion())
+        .setWorkflowInstanceKey(brokerResponse.getWorkflowInstanceKey())
+        .setVariables(bufferAsString(brokerResponse.getVariablesBuffer()))
         .build();
   }
 
