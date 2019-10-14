@@ -103,7 +103,7 @@ public abstract class BrokerExecuteCommand<T> extends BrokerRequest<T> {
     request.write(buffer, offset);
   }
 
-  private boolean isValidValueType() {
+  protected boolean isValidValueType() {
     return response.getValueType() == request.getValueType();
   }
 

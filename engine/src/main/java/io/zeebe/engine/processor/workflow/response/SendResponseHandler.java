@@ -12,14 +12,14 @@ import io.zeebe.engine.processor.TypedRecordProcessor;
 import io.zeebe.engine.processor.TypedResponseWriter;
 import io.zeebe.engine.processor.TypedStreamWriter;
 import io.zeebe.engine.state.instance.ElementInstanceState;
-import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
-import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceResultRecord;
+import io.zeebe.protocol.record.intent.WorkflowInstanceResultIntent;
 import org.agrona.DirectBuffer;
 
-public class SendResponseHandler implements TypedRecordProcessor<WorkflowInstanceCreationRecord> {
+public class SendResponseHandler implements TypedRecordProcessor<WorkflowInstanceResultRecord> {
 
   ElementInstanceState state;
-  WorkflowInstanceCreationRecord completedRecord = new WorkflowInstanceCreationRecord();
+  WorkflowInstanceResultRecord completedRecord = new WorkflowInstanceResultRecord();
 
   public SendResponseHandler(ElementInstanceState state) {
     this.state = state;
@@ -27,10 +27,10 @@ public class SendResponseHandler implements TypedRecordProcessor<WorkflowInstanc
 
   @Override
   public void processRecord(
-      TypedRecord<WorkflowInstanceCreationRecord> record,
+      TypedRecord<WorkflowInstanceResultRecord> record,
       TypedResponseWriter responseWriter,
       TypedStreamWriter streamWriter) {
-    final WorkflowInstanceCreationRecord workflowRecord = record.getValue();
+    final WorkflowInstanceResultRecord workflowRecord = record.getValue();
     final DirectBuffer variablesAsDocument =
         state.getVariablesState().getVariablesAsDocument(workflowRecord.getWorkflowInstanceKey());
 
@@ -43,11 +43,8 @@ public class SendResponseHandler implements TypedRecordProcessor<WorkflowInstanc
         .setVersion(workflowRecord.getVersion());
 
     streamWriter.appendFollowUpEvent(
-        record.getKey(), WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT, completedRecord);
+        record.getKey(), WorkflowInstanceResultIntent.COMPLETED, completedRecord);
     responseWriter.writeEventOnCommand(
-        record.getKey(),
-        WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT,
-        completedRecord,
-        record);
+        record.getKey(), WorkflowInstanceResultIntent.COMPLETED, completedRecord, record);
   }
 }

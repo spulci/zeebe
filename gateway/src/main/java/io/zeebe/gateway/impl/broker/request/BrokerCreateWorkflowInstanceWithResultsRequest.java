@@ -8,35 +8,36 @@
 package io.zeebe.gateway.impl.broker.request;
 
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceResultRecord;
 import io.zeebe.protocol.record.ValueType;
 import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
 import org.agrona.DirectBuffer;
 
-public class BrokerCreateWorkflowInstanceRequest
-    extends BrokerExecuteCommand<WorkflowInstanceCreationRecord> {
+public class BrokerCreateWorkflowInstanceWithResultsRequest
+    extends BrokerExecuteCommand<WorkflowInstanceResultRecord> {
 
   private final WorkflowInstanceCreationRecord requestDto = new WorkflowInstanceCreationRecord();
 
-  public BrokerCreateWorkflowInstanceRequest() {
-    super(ValueType.WORKFLOW_INSTANCE_CREATION, WorkflowInstanceCreationIntent.CREATE);
+  public BrokerCreateWorkflowInstanceWithResultsRequest() {
+    super(ValueType.WORKFLOW_INSTANCE_CREATION, WorkflowInstanceCreationIntent.CREATE_WITH_AWAIT_RESULT);
   }
 
-  public BrokerCreateWorkflowInstanceRequest setBpmnProcessId(String bpmnProcessId) {
+  public BrokerCreateWorkflowInstanceWithResultsRequest setBpmnProcessId(String bpmnProcessId) {
     requestDto.setBpmnProcessId(bpmnProcessId);
     return this;
   }
 
-  public BrokerCreateWorkflowInstanceRequest setKey(long key) {
+  public BrokerCreateWorkflowInstanceWithResultsRequest setKey(long key) {
     requestDto.setWorkflowKey(key);
     return this;
   }
 
-  public BrokerCreateWorkflowInstanceRequest setVersion(int version) {
+  public BrokerCreateWorkflowInstanceWithResultsRequest setVersion(int version) {
     requestDto.setVersion(version);
     return this;
   }
 
-  public BrokerCreateWorkflowInstanceRequest setVariables(DirectBuffer variables) {
+  public BrokerCreateWorkflowInstanceWithResultsRequest setVariables(DirectBuffer variables) {
     requestDto.setVariables(variables);
     return this;
   }
@@ -47,9 +48,14 @@ public class BrokerCreateWorkflowInstanceRequest
   }
 
   @Override
-  protected WorkflowInstanceCreationRecord toResponseDto(DirectBuffer buffer) {
-    final WorkflowInstanceCreationRecord responseDto = new WorkflowInstanceCreationRecord();
+  protected WorkflowInstanceResultRecord toResponseDto(DirectBuffer buffer) {
+    final WorkflowInstanceResultRecord responseDto = new WorkflowInstanceResultRecord();
     responseDto.wrap(buffer);
     return responseDto;
+  }
+
+  @Override
+  protected boolean isValidValueType() {
+    return response.getValueType() == ValueType.WORKFLOW_INSTANCE_RESULT;
   }
 }

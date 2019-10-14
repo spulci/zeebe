@@ -31,6 +31,7 @@ import io.zeebe.protocol.record.intent.TimerIntent;
 import io.zeebe.protocol.record.intent.VariableDocumentIntent;
 import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
+import io.zeebe.protocol.record.intent.WorkflowInstanceResultIntent;
 import io.zeebe.protocol.record.intent.WorkflowInstanceSubscriptionIntent;
 import java.util.Arrays;
 import java.util.List;
@@ -168,8 +169,8 @@ public class WorkflowEventProcessors {
         createInstanceProcessor);
 
     typedRecordProcessors.onCommand(
-        ValueType.WORKFLOW_INSTANCE_CREATION,
-        WorkflowInstanceCreationIntent.SEND_RESULT,
+        ValueType.WORKFLOW_INSTANCE_RESULT,
+        WorkflowInstanceResultIntent.SEND,
         new SendResponseHandler(elementInstanceState));
   }
 }

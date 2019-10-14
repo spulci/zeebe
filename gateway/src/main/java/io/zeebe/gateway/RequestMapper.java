@@ -11,6 +11,7 @@ import io.zeebe.gateway.impl.broker.request.BrokerActivateJobsRequest;
 import io.zeebe.gateway.impl.broker.request.BrokerCancelWorkflowInstanceRequest;
 import io.zeebe.gateway.impl.broker.request.BrokerCompleteJobRequest;
 import io.zeebe.gateway.impl.broker.request.BrokerCreateWorkflowInstanceRequest;
+import io.zeebe.gateway.impl.broker.request.BrokerCreateWorkflowInstanceWithResultsRequest;
 import io.zeebe.gateway.impl.broker.request.BrokerDeployWorkflowRequest;
 import io.zeebe.gateway.impl.broker.request.BrokerFailJobRequest;
 import io.zeebe.gateway.impl.broker.request.BrokerPublishMessageRequest;
@@ -90,10 +91,10 @@ public class RequestMapper {
     return brokerRequest;
   }
 
-  public static BrokerCreateWorkflowInstanceRequest toBlockingCreateWorkflowInstanceRequest(
+  public static BrokerCreateWorkflowInstanceWithResultsRequest toBlockingCreateWorkflowInstanceRequest(
       CreateWorkflowInstanceWithResultsRequest grpcRequest) {
-    final BrokerCreateWorkflowInstanceRequest brokerRequest =
-        BrokerCreateWorkflowInstanceRequest.newBrokerCreateWorkflowInstanceBlockingRequest();
+    final BrokerCreateWorkflowInstanceWithResultsRequest brokerRequest =
+        new BrokerCreateWorkflowInstanceWithResultsRequest();
 
     brokerRequest
         .setBpmnProcessId(grpcRequest.getRequest().getBpmnProcessId())

@@ -31,6 +31,7 @@ import io.zeebe.protocol.impl.record.value.job.JobRecord;
 import io.zeebe.protocol.impl.record.value.variable.VariableDocumentRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceResultRecord;
 import java.util.Iterator;
 import org.agrona.DirectBuffer;
 
@@ -83,7 +84,7 @@ public class ResponseMapper {
   }
 
   public static CreateWorkflowInstanceWithResultsResponse toBlockingCreateWorkflowInstanceResponse(
-      long key, WorkflowInstanceCreationRecord brokerResponse) {
+      long key, WorkflowInstanceResultRecord brokerResponse) {
     return CreateWorkflowInstanceWithResultsResponse.newBuilder()
         .setWorkflowKey(brokerResponse.getWorkflowKey())
         .setBpmnProcessId(bufferAsString(brokerResponse.getBpmnProcessIdBuffer()))

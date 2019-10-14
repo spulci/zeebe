@@ -13,10 +13,10 @@ import io.zeebe.engine.processor.workflow.handlers.AbstractHandler;
 import io.zeebe.engine.processor.workflow.handlers.IOMappingHelper;
 import io.zeebe.engine.state.instance.ElementInstanceState.RequestMetadata;
 import io.zeebe.msgpack.mapping.MappingException;
-import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
-import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceResultRecord;
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
+import io.zeebe.protocol.record.intent.WorkflowInstanceResultIntent;
 import io.zeebe.protocol.record.value.ErrorType;
 
 /**
@@ -45,7 +45,7 @@ public class ElementCompletingHandler<T extends ExecutableFlowNode> extends Abst
   protected boolean handleState(BpmnStepContext<T> context) {
     try {
       ioMappingHelper.applyOutputMappings(context);
-      //  sendResponse(context);
+      sendResponse(context);
       return true;
     } catch (MappingException e) {
       context.raiseIncident(ErrorType.IO_MAPPING_ERROR, e.getMessage());
@@ -67,7 +67,7 @@ public class ElementCompletingHandler<T extends ExecutableFlowNode> extends Abst
         context.getElementInstanceState().getRequestMetadata(elementInstanceKey);
     if (requestMetadata != null) {
       final WorkflowInstanceRecord record = context.getValue();
-      final WorkflowInstanceCreationRecord newRecord = new WorkflowInstanceCreationRecord();
+      final WorkflowInstanceResultRecord newRecord = new WorkflowInstanceResultRecord();
       newRecord
           .setBpmnProcessId(record.getBpmnProcessId())
           .setWorkflowKey(record.getWorkflowKey())
@@ -77,7 +77,7 @@ public class ElementCompletingHandler<T extends ExecutableFlowNode> extends Abst
           .getCommandWriter()
           .appendFollowUpCommand(
               context.getKey(),
-              WorkflowInstanceCreationIntent.SEND_RESULT,
+              WorkflowInstanceResultIntent.SEND,
               newRecord,
               recordMetadata -> {
                 recordMetadata.requestId(requestMetadata.getRequestId());

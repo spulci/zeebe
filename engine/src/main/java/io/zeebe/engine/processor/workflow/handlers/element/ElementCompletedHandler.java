@@ -44,7 +44,7 @@ public class ElementCompletedHandler<T extends ExecutableFlowNode>
       completeFlowScope(context);
     }
 
-    sendResponse(context);
+    // sendResponse(context);
     return super.handleState(context);
   }
 
