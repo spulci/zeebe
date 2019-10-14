@@ -87,9 +87,10 @@ public class CreateWorkflowInstanceCommandImpl
   }
 
   @Override
-  public CreateWorkflowInstanceCommandStep3 awaitCompletion() {
+  public FinalCommandStep<CreateWorkflowInstanceWithResultsResponse> withResults() {
     this.blocking = true;
-    return this;
+    return new CreateWorkflowInstanceWithResultsCommandImpl(
+        asyncStub, objectMapper, requestTimeout, retryPredicate, builder);
   }
 
   @Override
@@ -127,11 +128,13 @@ public class CreateWorkflowInstanceCommandImpl
     if (blocking) {
       CreateWorkflowInstanceWithResultsRequest blockingRequest =
           CreateWorkflowInstanceWithResultsRequest.newBuilder().setRequest(builder.build()).build();
-      final RetriableClientFutureImpl<WorkflowInstanceEvent, CreateWorkflowInstanceWithResultsResponse> future =
-        new RetriableClientFutureImpl<>(
-          CreateWorkflowInstanceWithResultsResponseImpl::new,
-          retryPredicate,
-          streamObserver -> sendWithResponse(blockingRequest, streamObserver));
+      final RetriableClientFutureImpl<
+              WorkflowInstanceEvent, CreateWorkflowInstanceWithResultsResponse>
+          future =
+              new RetriableClientFutureImpl<>(
+                  CreateWorkflowInstanceWithResultsResponseImpl::new,
+                  retryPredicate,
+                  streamObserver -> sendWithResponse(blockingRequest, streamObserver));
 
       sendWithResponse(blockingRequest, future);
       return future;
@@ -156,13 +159,12 @@ public class CreateWorkflowInstanceCommandImpl
   }
 
   private void sendWithResponse(
-    CreateWorkflowInstanceWithResultsRequest request,
-    StreamObserver<CreateWorkflowInstanceWithResultsResponse> future) {
+      CreateWorkflowInstanceWithResultsRequest request,
+      StreamObserver<CreateWorkflowInstanceWithResultsResponse> future) {
     asyncStub
-      .withDeadlineAfter(requestTimeout.toMillis(), TimeUnit.MILLISECONDS)
-      .createWorkflowInstanceWithResults(request, future);
+        .withDeadlineAfter(requestTimeout.toMillis(), TimeUnit.MILLISECONDS)
+        .createWorkflowInstanceWithResults(request, future);
   }
-
 
   private CreateWorkflowInstanceCommandStep3 setVariables(String jsonDocument) {
     builder.setVariables(jsonDocument);

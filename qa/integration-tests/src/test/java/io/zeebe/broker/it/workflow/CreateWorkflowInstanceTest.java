@@ -20,6 +20,7 @@ import io.zeebe.client.api.command.ClientStatusException;
 import io.zeebe.client.api.response.DeploymentEvent;
 import io.zeebe.client.api.response.Workflow;
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsResponse;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.BpmnModelInstance;
 import io.zeebe.protocol.Protocol;
@@ -284,13 +285,13 @@ public class CreateWorkflowInstanceTest {
   @Test
   public void shouldCreateWorkflowInstanceAwaitResults() {
     final Map<String, Object> variables = Maps.of(entry("foo", "bar"));
-    final WorkflowInstanceEvent result = clientRule
+    final CreateWorkflowInstanceWithResultsResponse result = clientRule
       .getClient()
       .newCreateInstanceCommand()
       .bpmnProcessId(processId)
       .latestVersion()
       .variables(variables)
-      .awaitCompletion()
+      .withResults()
       .send()
       .join();
 

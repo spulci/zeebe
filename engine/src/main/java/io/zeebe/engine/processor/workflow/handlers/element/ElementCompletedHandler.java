@@ -11,8 +11,13 @@ import io.zeebe.engine.processor.workflow.BpmnStepContext;
 import io.zeebe.engine.processor.workflow.deployment.model.element.ExecutableFlowNode;
 import io.zeebe.engine.processor.workflow.handlers.AbstractTerminalStateHandler;
 import io.zeebe.engine.state.instance.ElementInstance;
+import io.zeebe.engine.state.instance.ElementInstanceState.RequestMetadata;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
+import io.zeebe.protocol.record.ValueType;
+import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
+import org.agrona.DirectBuffer;
 
 /**
  * Delegates completion logic to sub class, and if successful and it is the last active element in
@@ -39,6 +44,7 @@ public class ElementCompletedHandler<T extends ExecutableFlowNode>
       completeFlowScope(context);
     }
 
+    sendResponse(context);
     return super.handleState(context);
   }
 
@@ -52,5 +58,40 @@ public class ElementCompletedHandler<T extends ExecutableFlowNode>
             flowScopeInstance.getKey(),
             WorkflowInstanceIntent.ELEMENT_COMPLETING,
             flowScopeInstanceValue);
+  }
+
+  private void sendResponse(BpmnStepContext<T> context) {
+    final long elementInstanceKey = context.getElementInstance().getKey();
+    final RequestMetadata requestMetadata =
+        context.getElementInstanceState().getRequestMetadata(elementInstanceKey);
+    if (requestMetadata != null) {
+      final DirectBuffer variablesAsDocument =
+          context
+              .getElementInstanceState()
+              .getVariablesState()
+              .getVariablesAsDocument(elementInstanceKey);
+
+      final WorkflowInstanceCreationRecord completedRecord =
+          new WorkflowInstanceCreationRecord(); // TODO: new record type
+      completedRecord
+          .setWorkflowInstanceKey(context.getValue().getWorkflowInstanceKey())
+          .setWorkflowKey(context.getValue().getWorkflowKey())
+          .setVariables(variablesAsDocument)
+          .setBpmnProcessId(context.getValue().getBpmnProcessId())
+          .setVersion(context.getValue().getVersion());
+
+      context
+          .getOutput()
+          .getResponseWriter()
+          .writeReponse(
+              context.getKey(),
+              WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT,
+              completedRecord,
+              ValueType.WORKFLOW_INSTANCE_CREATION,
+              requestMetadata.getRequestId(),
+              requestMetadata.getRequestStreamId());
+
+      context.getSideEffect().add(context.getOutput().getResponseWriter()::flush);
+    }
   }
 }

@@ -45,7 +45,7 @@ public class ElementCompletingHandler<T extends ExecutableFlowNode> extends Abst
   protected boolean handleState(BpmnStepContext<T> context) {
     try {
       ioMappingHelper.applyOutputMappings(context);
-      sendResponse(context);
+     //  sendResponse(context);
       return true;
     } catch (MappingException e) {
       context.raiseIncident(ErrorType.IO_MAPPING_ERROR, e.getMessage());

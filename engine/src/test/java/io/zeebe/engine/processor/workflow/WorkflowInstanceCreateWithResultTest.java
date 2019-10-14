@@ -7,7 +7,6 @@
  */
 package io.zeebe.engine.processor.workflow;
 
-import static io.zeebe.test.util.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 
@@ -43,8 +42,8 @@ public class WorkflowInstanceCreateWithResultTest {
     streamProcessorRule.createWorkflowInstanceBlocking(r -> r.setBpmnProcessId(PROCESS_ID));
 
     // then
-    waitUntil(
-        () -> envRule.events().withIntent(WorkflowInstanceCreationIntent.SEND_RESULT).exists());
+    //waitUntil(
+    //    () -> envRule.events().withIntent(WorkflowInstanceCreationIntent.SEND_RESULT).exists());
 
     Mockito.verify(envRule.getCommandResponseWriter(), times(1))
         .intent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT);

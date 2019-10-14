@@ -14,7 +14,7 @@ import io.zeebe.logstreams.log.LogStreamReader;
 import io.zeebe.util.sched.ActorControl;
 import java.util.function.BooleanSupplier;
 
-public class ProcessingContext implements ReadonlyProcessingContext {
+public class  ProcessingContext implements ReadonlyProcessingContext {
 
   private ActorControl actor;
   private EventFilter eventFilter;

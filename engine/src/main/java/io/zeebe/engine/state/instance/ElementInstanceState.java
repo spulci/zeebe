@@ -309,7 +309,7 @@ public class ElementInstanceState {
     return null;
   }
 
-  public void setRequestMetadata(long workflowInstanceKey, long requestId, long requestStreamId) {
+  public void setRequestMetadata(long workflowInstanceKey, long requestId, int requestStreamId) {
     elementInstanceKey.wrapLong(workflowInstanceKey);
     requestMetadata.setRequestId(requestId);
     requestMetadata.setRequestStreamId(requestStreamId);
@@ -329,11 +329,11 @@ public class ElementInstanceState {
   public class RequestMetadata implements DbValue {
 
     private long requestId;
-    private long requestStreamId; // TODO: -> int
+    private int requestStreamId; // TODO: -> int
 
     public RequestMetadata() {}
 
-    public RequestMetadata(long requestId, long requestStreamId) {
+    public RequestMetadata(long requestId, int requestStreamId) {
       this.requestId = requestId;
       this.requestStreamId = requestStreamId;
     }
@@ -347,11 +347,11 @@ public class ElementInstanceState {
       return this;
     }
 
-    public long getRequestStreamId() {
+    public int getRequestStreamId() {
       return requestStreamId;
     }
 
-    public RequestMetadata setRequestStreamId(long requestStreamId) {
+    public RequestMetadata setRequestStreamId(int requestStreamId) {
       this.requestStreamId = requestStreamId;
       return this;
     }
@@ -362,15 +362,15 @@ public class ElementInstanceState {
       requestId = buffer.getLong(offset, ZB_DB_BYTE_ORDER);
       offset += Long.BYTES;
 
-      requestStreamId = buffer.getLong(offset, ZB_DB_BYTE_ORDER);
-      offset += Long.BYTES;
+      requestStreamId = buffer.getInt(offset, ZB_DB_BYTE_ORDER);
+      offset += Integer.BYTES;
 
       assert (offset - startOffset) == length : "End offset differs from length";
     }
 
     @Override
     public int getLength() {
-      return 2 * Long.BYTES;
+      return Long.BYTES + Integer.BYTES;
     }
 
     @Override
@@ -380,8 +380,8 @@ public class ElementInstanceState {
       buffer.putLong(offset, requestId, ZB_DB_BYTE_ORDER);
       offset += Long.BYTES;
 
-      buffer.putLong(offset, requestStreamId, ZB_DB_BYTE_ORDER);
-      offset += Long.BYTES;
+      buffer.putInt(offset, requestStreamId, ZB_DB_BYTE_ORDER);
+      offset += Integer.BYTES;
 
       assert (offset - startOffset) == getLength() : "End offset differs from getLength()";
     }

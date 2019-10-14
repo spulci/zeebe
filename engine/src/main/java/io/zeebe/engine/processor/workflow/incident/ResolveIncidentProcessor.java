@@ -106,6 +106,7 @@ public final class ResolveIncidentProcessor implements TypedRecordProcessor<Inci
           failedRecord.getValue(),
           failedRecord.getState(),
           streamWriter,
+          null,
           queue::add);
 
       sideEffect.accept(queue);
