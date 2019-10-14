@@ -30,7 +30,7 @@ public class ProcessingContext implements ReadonlyProcessingContext {
   private DbContext dbContext;
 
   private BooleanSupplier abortCondition;
-  private Consumer<TypedRecord> onProcessed;
+  private Consumer<TypedRecord> onProcessed = ignore -> {};
 
   public ProcessingContext actor(ActorControl actor) {
     this.actor = actor;

@@ -21,6 +21,7 @@ import io.zeebe.protocol.impl.record.value.message.WorkflowInstanceSubscriptionR
 import io.zeebe.protocol.impl.record.value.timer.TimerRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
 import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceRecord;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceResultRecord;
 import io.zeebe.protocol.record.intent.Intent;
 import io.zeebe.protocol.record.intent.WorkflowInstanceIntent;
 import io.zeebe.test.util.stream.StreamWrapper;
@@ -103,6 +104,12 @@ public class RecordStream extends StreamWrapper<LoggedEvent, RecordStream> {
     return new TypedRecordStream<>(
         filter(Records::isWorkflowInstanceCreationRecord)
             .map((l) -> CopiedRecords.createCopiedRecord(Protocol.DEPLOYMENT_PARTITION, l)));
+  }
+
+  public TypedRecordStream<WorkflowInstanceResultRecord> onlyWorkflowInstanceResultRecords() {
+    return new TypedRecordStream<>(
+      filter(Records::isWorkflowInstanceResultRecord)
+        .map((l) -> CopiedRecords.createCopiedRecord(Protocol.DEPLOYMENT_PARTITION, l)));
   }
 
   public TypedRecordStream<ErrorRecord> onlyErrorRecords() {

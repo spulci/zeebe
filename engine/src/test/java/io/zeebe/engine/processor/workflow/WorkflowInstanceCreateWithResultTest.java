@@ -7,14 +7,16 @@
  */
 package io.zeebe.engine.processor.workflow;
 
+import static io.zeebe.test.util.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 
 import io.zeebe.engine.util.StreamProcessorRule;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.BpmnModelInstance;
-import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceCreationRecord;
+import io.zeebe.protocol.impl.record.value.workflowinstance.WorkflowInstanceResultRecord;
 import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
+import io.zeebe.protocol.record.intent.WorkflowInstanceResultIntent;
 import io.zeebe.test.util.MsgPackUtil;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
@@ -42,11 +44,10 @@ public class WorkflowInstanceCreateWithResultTest {
     streamProcessorRule.createWorkflowInstanceBlocking(r -> r.setBpmnProcessId(PROCESS_ID));
 
     // then
-    // waitUntil(
-    //    () -> envRule.events().withIntent(WorkflowInstanceCreationIntent.SEND_RESULT).exists());
+    waitUntil(() -> envRule.events().withIntent(WorkflowInstanceResultIntent.SEND).exists());
 
     Mockito.verify(envRule.getCommandResponseWriter(), times(1))
-        .intent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT);
+        .intent(WorkflowInstanceResultIntent.COMPLETED);
   }
 
   @Test
@@ -59,11 +60,11 @@ public class WorkflowInstanceCreateWithResultTest {
         r -> r.setBpmnProcessId(PROCESS_ID).setVariables(MsgPackUtil.asMsgPack(variables)));
 
     // then
-    final WorkflowInstanceCreationRecord result =
+    final WorkflowInstanceResultRecord result =
         envRule
             .events()
-            .onlyWorkflowInstanceCreationRecords()
-            .withIntent(WorkflowInstanceCreationIntent.COMPLETED_WITH_RESULT)
+            .onlyWorkflowInstanceResultRecords()
+            .withIntent(WorkflowInstanceResultIntent.SEND)
             .findFirst()
             .get()
             .getValue();

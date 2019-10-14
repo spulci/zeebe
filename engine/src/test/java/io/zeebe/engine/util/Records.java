@@ -82,6 +82,10 @@ public class Records {
     return isRecordOfType(event, ValueType.WORKFLOW_INSTANCE_CREATION);
   }
 
+  public static boolean isWorkflowInstanceResultRecord(final LoggedEvent event) {
+    return isRecordOfType(event, ValueType.WORKFLOW_INSTANCE_RESULT);
+  }
+
   public static boolean isErrorRecord(final LoggedEvent event) {
     return isRecordOfType(event, ValueType.ERROR);
   }
@@ -140,7 +144,8 @@ public class Records {
 
     final RecordMetadata metadata = getMetadata(event);
 
-    return metadata.getValueType() == type;
+    boolean result = metadata.getValueType() == type;
+    return result;
   }
 
   public static WorkflowInstanceRecord workflowInstance(final int instanceKey) {
