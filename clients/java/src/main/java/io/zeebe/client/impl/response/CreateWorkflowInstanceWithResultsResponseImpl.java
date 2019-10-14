@@ -15,10 +15,10 @@
  */
 package io.zeebe.client.impl.response;
 
-import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.zeebe.client.api.response.WorkflowInstanceEventResult;
 import io.zeebe.gateway.protocol.GatewayOuterClass;
 
-public class CreateWorkflowInstanceWithResultsResponseImpl implements WorkflowInstanceEvent {
+public class CreateWorkflowInstanceWithResultsResponseImpl implements WorkflowInstanceEventResult {
 
   private final long workflowKey;
   private final String bpmnProcessId;

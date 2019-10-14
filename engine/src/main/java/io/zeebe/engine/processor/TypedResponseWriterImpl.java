@@ -81,19 +81,25 @@ public class TypedResponseWriterImpl implements TypedResponseWriter, SideEffectP
   }
 
   @Override
-  public void writeReponse(long eventKey, Intent eventState, UnpackedObject eventValue, ValueType valueType, long requestId, int requestStreamId) {
+  public void writeReponse(
+      long eventKey,
+      Intent eventState,
+      UnpackedObject eventValue,
+      ValueType valueType,
+      long requestId,
+      int requestStreamId) {
     stringWrapper.wrap(0, 0);
 
     stage(
-      RecordType.EVENT,
-      eventState,
-      eventKey,
-      RejectionType.NULL_VAL,
-      stringWrapper,
-      valueType,
-      requestId,
-      requestStreamId,
-      eventValue);
+        RecordType.EVENT,
+        eventState,
+        eventKey,
+        RejectionType.NULL_VAL,
+        stringWrapper,
+        valueType,
+        requestId,
+        requestStreamId,
+        eventValue);
   }
 
   public boolean flush() {

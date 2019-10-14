@@ -21,8 +21,13 @@ public interface TypedResponseWriter {
   void writeEventOnCommand(
       long eventKey, Intent eventState, UnpackedObject eventValue, TypedRecord<?> command);
 
-  void writeReponse(long eventKey, Intent eventState, UnpackedObject eventValue,
-    ValueType valueType, long requestId, int requestStreamId);
+  void writeReponse(
+      long eventKey,
+      Intent eventState,
+      UnpackedObject eventValue,
+      ValueType valueType,
+      long requestId,
+      int requestStreamId);
 
   /**
    * Submits the response to transport.

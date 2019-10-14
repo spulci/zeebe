@@ -22,6 +22,7 @@ import io.zeebe.client.api.command.CreateWorkflowInstanceCommandStep1.CreateWork
 import io.zeebe.client.api.command.CreateWorkflowInstanceCommandStep1.CreateWorkflowInstanceCommandStep3;
 import io.zeebe.client.api.command.FinalCommandStep;
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.zeebe.client.api.response.WorkflowInstanceEventResult;
 import io.zeebe.client.impl.RetriableClientFutureImpl;
 import io.zeebe.client.impl.ZeebeObjectMapper;
 import io.zeebe.client.impl.response.CreateWorkflowInstanceResponseImpl;
@@ -87,7 +88,7 @@ public class CreateWorkflowInstanceCommandImpl
   }
 
   @Override
-  public FinalCommandStep<CreateWorkflowInstanceWithResultsResponse> withResults() {
+  public FinalCommandStep<WorkflowInstanceEventResult> withResults() {
     this.blocking = true;
     return new CreateWorkflowInstanceWithResultsCommandImpl(
         asyncStub, objectMapper, requestTimeout, retryPredicate, builder);
@@ -126,7 +127,7 @@ public class CreateWorkflowInstanceCommandImpl
   public ZeebeFuture<WorkflowInstanceEvent> send() {
     final CreateWorkflowInstanceRequest request = builder.build();
     if (blocking) {
-      CreateWorkflowInstanceWithResultsRequest blockingRequest =
+      final CreateWorkflowInstanceWithResultsRequest blockingRequest =
           CreateWorkflowInstanceWithResultsRequest.newBuilder().setRequest(builder.build()).build();
       final RetriableClientFutureImpl<
               WorkflowInstanceEvent, CreateWorkflowInstanceWithResultsResponse>

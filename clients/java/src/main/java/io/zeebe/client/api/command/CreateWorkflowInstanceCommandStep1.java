@@ -16,7 +16,7 @@
 package io.zeebe.client.api.command;
 
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
-import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsResponse;
+import io.zeebe.client.api.response.WorkflowInstanceEventResult;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -100,6 +100,6 @@ public interface CreateWorkflowInstanceCommandStep1 {
      */
     CreateWorkflowInstanceCommandStep3 variables(Object variables);
 
-    FinalCommandStep<CreateWorkflowInstanceWithResultsResponse> withResults();
+    FinalCommandStep<WorkflowInstanceEventResult> withResults();
   }
 }

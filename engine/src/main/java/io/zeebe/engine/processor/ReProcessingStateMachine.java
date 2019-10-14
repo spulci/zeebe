@@ -378,10 +378,13 @@ public final class ReProcessingStateMachine {
         long eventKey, Intent eventState, UnpackedObject eventValue, TypedRecord<?> command) {}
 
     @Override
-    public void writeReponse(long eventKey, Intent eventState, UnpackedObject eventValue,
-      ValueType valueType, long requestId, int requestStreamId) {
-
-    }
+    public void writeReponse(
+        long eventKey,
+        Intent eventState,
+        UnpackedObject eventValue,
+        ValueType valueType,
+        long requestId,
+        int requestStreamId) {}
 
     @Override
     public boolean flush() {

@@ -42,7 +42,7 @@ public class WorkflowInstanceCreateWithResultTest {
     streamProcessorRule.createWorkflowInstanceBlocking(r -> r.setBpmnProcessId(PROCESS_ID));
 
     // then
-    //waitUntil(
+    // waitUntil(
     //    () -> envRule.events().withIntent(WorkflowInstanceCreationIntent.SEND_RESULT).exists());
 
     Mockito.verify(envRule.getCommandResponseWriter(), times(1))

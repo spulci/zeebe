@@ -24,6 +24,7 @@ import io.zeebe.util.sched.future.ActorFuture;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class StreamProcessorBuilder {
 
@@ -138,6 +139,11 @@ public class StreamProcessorBuilder {
     Objects.requireNonNull(
         processingContext.getCommandResponseWriter(), "No command response writer provided.");
     Objects.requireNonNull(zeebeDb, "No database provided.");
+  }
+
+  public StreamProcessorBuilder commandProcessedListener(Consumer<TypedRecord> onProcessed) {
+    processingContext.onProcessed(onProcessed);
+    return this;
   }
 
   private static class MetadataEventFilter implements EventFilter {

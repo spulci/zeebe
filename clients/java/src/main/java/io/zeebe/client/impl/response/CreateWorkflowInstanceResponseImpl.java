@@ -53,10 +53,6 @@ public class CreateWorkflowInstanceResponseImpl implements WorkflowInstanceEvent
     return workflowInstanceKey;
   }
 
-  public String getVariables() {
-    return null;
-  }
-
   @Override
   public String toString() {
     return "CreateWorkflowInstanceResponseImpl{"

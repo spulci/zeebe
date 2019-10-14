@@ -9,7 +9,11 @@ package io.zeebe.broker.transport.commandapi;
 
 import io.zeebe.broker.clustering.base.partitions.Partition;
 import io.zeebe.broker.transport.backpressure.PartitionAwareRequestLimiter;
+import io.zeebe.broker.transport.backpressure.RequestLimiter;
 import io.zeebe.engine.processor.CommandResponseWriter;
+import io.zeebe.engine.processor.TypedRecord;
+import io.zeebe.protocol.record.RecordType;
+import io.zeebe.protocol.record.intent.Intent;
 import io.zeebe.servicecontainer.Injector;
 import io.zeebe.servicecontainer.Service;
 import io.zeebe.servicecontainer.ServiceGroupReference;
@@ -17,6 +21,7 @@ import io.zeebe.servicecontainer.ServiceName;
 import io.zeebe.servicecontainer.ServiceStartContext;
 import io.zeebe.transport.ServerOutput;
 import io.zeebe.transport.ServerTransport;
+import java.util.function.Consumer;
 
 public class CommandApiService implements Service<CommandApiService> {
 
@@ -49,6 +54,15 @@ public class CommandApiService implements Service<CommandApiService> {
 
   public CommandResponseWriter newCommandResponseWriter(int partitionId) {
     return new CommandResponseWriterImpl(serverOutput, limiter.getLimiter(partitionId));
+  }
+
+  public Consumer<TypedRecord> onProcessed(int partitionId) {
+    final RequestLimiter<Intent> partitionlimiter = limiter.getLimiter(partitionId);
+    return record -> {
+      if (record.getRecordType() == RecordType.COMMAND && record.hasRequestMetadata()) {
+        partitionlimiter.onResponse(record.getRequestStreamId(), record.getRequestId());
+      }
+    };
   }
 
   public ServiceGroupReference<Partition> getLeaderParitionsGroupReference() {

@@ -94,6 +94,7 @@ public class EngineService implements Service<EngineService> {
         .serviceContainer(serviceContainer)
         .commandResponseWriter(
             commandApiService.newCommandResponseWriter(partition.getPartitionId()))
+        .commandProcessedListener(commandApiService.onProcessed(partition.getPartitionId()))
         .streamProcessorFactory(
             (processingContext) -> {
               final ActorControl actor = processingContext.getActor();

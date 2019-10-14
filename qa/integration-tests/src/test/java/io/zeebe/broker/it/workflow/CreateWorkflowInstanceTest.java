@@ -20,7 +20,7 @@ import io.zeebe.client.api.command.ClientStatusException;
 import io.zeebe.client.api.response.DeploymentEvent;
 import io.zeebe.client.api.response.Workflow;
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
-import io.zeebe.gateway.protocol.GatewayOuterClass.CreateWorkflowInstanceWithResultsResponse;
+import io.zeebe.client.api.response.WorkflowInstanceEventResult;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.model.bpmn.BpmnModelInstance;
 import io.zeebe.protocol.Protocol;
@@ -285,15 +285,16 @@ public class CreateWorkflowInstanceTest {
   @Test
   public void shouldCreateWorkflowInstanceAwaitResults() {
     final Map<String, Object> variables = Maps.of(entry("foo", "bar"));
-    final CreateWorkflowInstanceWithResultsResponse result = clientRule
-      .getClient()
-      .newCreateInstanceCommand()
-      .bpmnProcessId(processId)
-      .latestVersion()
-      .variables(variables)
-      .withResults()
-      .send()
-      .join();
+    final WorkflowInstanceEventResult result =
+        clientRule
+            .getClient()
+            .newCreateInstanceCommand()
+            .bpmnProcessId(processId)
+            .latestVersion()
+            .variables(variables)
+            .withResults()
+            .send()
+            .join();
 
     assertThat(result.getBpmnProcessId()).isEqualTo(processId);
     assertThat(result.getVariables()).isEqualTo(variables);

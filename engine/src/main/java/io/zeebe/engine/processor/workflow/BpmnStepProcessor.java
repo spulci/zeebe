@@ -73,12 +73,12 @@ public class BpmnStepProcessor implements TypedRecordProcessor<WorkflowInstanceR
   }
 
   private void populateEventContext(
-    long key,
-    WorkflowInstanceRecord recordValue,
-    WorkflowInstanceIntent intent,
-    TypedStreamWriter streamWriter,
-    Consumer<SideEffectProducer> sideEffect,
-    TypedResponseWriter responseWriter) {
+      long key,
+      WorkflowInstanceRecord recordValue,
+      WorkflowInstanceIntent intent,
+      TypedStreamWriter streamWriter,
+      Consumer<SideEffectProducer> sideEffect,
+      TypedResponseWriter responseWriter) {
 
     context.init(key, recordValue, intent);
     context.setStreamWriter(streamWriter);

@@ -30,6 +30,7 @@ import io.zeebe.util.sched.clock.ActorClock;
 import io.zeebe.util.sched.future.ActorFuture;
 import java.time.Duration;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 
 /**
@@ -127,6 +128,7 @@ public final class ProcessingStateMachine {
   private long lastWrittenEventPosition = -1L;
   private boolean onErrorHandling;
   private long errorRecordPosition = -1;
+  private final Consumer<TypedRecord> onProcessed;
 
   public ProcessingStateMachine(ProcessingContext context, BooleanSupplier shouldProcessNext) {
 
@@ -150,6 +152,7 @@ public final class ProcessingStateMachine {
     this.typedEvent = new TypedEventImpl(partitionId);
     this.responseWriter =
         new TypedResponseWriterImpl(context.getCommandResponseWriter(), partitionId);
+    this.onProcessed = context.getOnProcessed();
 
     this.metrics = new StreamProcessorMetrics(partitionId);
   }
@@ -370,6 +373,8 @@ public final class ProcessingStateMachine {
   private void executeSideEffects() {
     final ActorFuture<Boolean> retryFuture =
         sideEffectsRetryStrategy.runWithRetry(sideEffectProducer::flush, abortCondition);
+
+    this.onProcessed.accept(typedEvent);
 
     actor.runOnCompletion(
         retryFuture,
