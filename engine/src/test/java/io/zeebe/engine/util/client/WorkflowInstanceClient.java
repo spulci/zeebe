@@ -62,6 +62,11 @@ public class WorkflowInstanceClient {
       return this;
     }
 
+    public WorkflowInstanceCreationWithResultClient withResult() {
+      return new WorkflowInstanceCreationWithResultClient(
+          environmentRule, workflowInstanceCreationRecord);
+    }
+
     public long create() {
       final long position =
           environmentRule.writeCommand(
@@ -73,6 +78,41 @@ public class WorkflowInstanceClient {
           .getFirst()
           .getValue()
           .getWorkflowInstanceKey();
+    }
+  }
+
+  public static class WorkflowInstanceCreationWithResultClient {
+    private StreamProcessorRule environmentRule;
+    private final WorkflowInstanceCreationRecord workflowInstanceCreationRecord;
+
+    public WorkflowInstanceCreationWithResultClient(
+        StreamProcessorRule environmentRule, WorkflowInstanceCreationRecord record) {
+      this.environmentRule = environmentRule;
+      this.workflowInstanceCreationRecord = record;
+    }
+
+    public long create(int requestStreamId, long requestId) {
+      final long position =
+          environmentRule.writeCommand(
+              requestStreamId,
+              requestId,
+              WorkflowInstanceCreationIntent.CREATE_WITH_AWAITING_RESULT,
+              workflowInstanceCreationRecord);
+
+      return RecordingExporter.workflowInstanceCreationRecords()
+          .withIntent(WorkflowInstanceCreationIntent.CREATED)
+          .withSourceRecordPosition(position)
+          .getFirst()
+          .getValue()
+          .getWorkflowInstanceKey();
+    }
+
+    public void asyncCreate(int requestStreamId, long requestId) {
+      environmentRule.writeCommand(
+          requestStreamId,
+          requestId,
+          WorkflowInstanceCreationIntent.CREATE_WITH_AWAITING_RESULT,
+          workflowInstanceCreationRecord);
     }
   }
 

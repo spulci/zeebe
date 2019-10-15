@@ -29,5 +29,7 @@ public interface CommandProcessor<T extends UnifiedRecordValue> {
     long accept(Intent newState, T updatedValue);
 
     void reject(RejectionType type, String reason);
+
+    void shouldRespond(boolean shouldRespond);
   }
 }
