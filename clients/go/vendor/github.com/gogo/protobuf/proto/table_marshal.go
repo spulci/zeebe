@@ -389,13 +389,8 @@ func (u *marshalInfo) computeMarshalInfo() {
 	// get oneof implementers
 	var oneofImplementers []interface{}
 	// gogo: isOneofMessage is needed for embedded oneof messages, without a marshaler and unmarshaler
-	if isOneofMessage {
-		switch m := reflect.Zero(reflect.PtrTo(t)).Interface().(type) {
-		case oneofFuncsIface:
-			_, _, _, oneofImplementers = m.XXX_OneofFuncs()
-		case oneofWrappersIface:
-			oneofImplementers = m.XXX_OneofWrappers()
-		}
+	if m, ok := reflect.Zero(reflect.PtrTo(t)).Interface().(oneofMessage); ok && isOneofMessage {
+		_, _, _, oneofImplementers = m.XXX_OneofFuncs()
 	}
 
 	// normal fields
@@ -496,7 +491,7 @@ func (fi *marshalFieldInfo) computeMarshalFieldInfo(f *reflect.StructField) {
 
 func (fi *marshalFieldInfo) computeOneofFieldInfo(f *reflect.StructField, oneofImplementers []interface{}) {
 	fi.field = toField(f)
-	fi.wiretag = math.MaxInt32 // Use a large tag number, make oneofs sorted at the end. This tag will not appear on the wire.
+	fi.wiretag = 1<<31 - 1 // Use a large tag number, make oneofs sorted at the end. This tag will not appear on the wire.
 	fi.isPointer = true
 	fi.sizer, fi.marshaler = makeOneOfMarshaler(fi, f)
 	fi.oneofElems = make(map[reflect.Type]*marshalElemInfo)
@@ -522,6 +517,10 @@ func (fi *marshalFieldInfo) computeOneofFieldInfo(f *reflect.StructField, oneofI
 			marshaler: marshalr,
 		}
 	}
+}
+
+type oneofMessage interface {
+	XXX_OneofFuncs() (func(Message, *Buffer) error, func(Message, int, int, *Buffer) (bool, error), func(Message) int, []interface{})
 }
 
 // wiretype returns the wire encoding of the type.
