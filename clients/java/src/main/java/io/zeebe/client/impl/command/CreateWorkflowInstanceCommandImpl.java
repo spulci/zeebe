@@ -22,6 +22,7 @@ import io.zeebe.client.api.command.CreateWorkflowInstanceCommandStep1.CreateWork
 import io.zeebe.client.api.command.CreateWorkflowInstanceCommandStep1.CreateWorkflowInstanceCommandStep3;
 import io.zeebe.client.api.command.FinalCommandStep;
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.zeebe.client.api.response.WorkflowInstanceResult;
 import io.zeebe.client.impl.RetriableClientFutureImpl;
 import io.zeebe.client.impl.ZeebeObjectMapper;
 import io.zeebe.client.impl.response.CreateWorkflowInstanceResponseImpl;
@@ -80,6 +81,12 @@ public class CreateWorkflowInstanceCommandImpl
   public CreateWorkflowInstanceCommandStep3 variables(Object variables) {
     ArgumentUtil.ensureNotNull("variables", variables);
     return setVariables(objectMapper.toJson(variables));
+  }
+
+  @Override
+  public FinalCommandStep<WorkflowInstanceResult> withResult() {
+    return new CreateWorkflowInstanceWithResultCommandImpl(
+        objectMapper, asyncStub, builder, retryPredicate, requestTimeout);
   }
 
   @Override

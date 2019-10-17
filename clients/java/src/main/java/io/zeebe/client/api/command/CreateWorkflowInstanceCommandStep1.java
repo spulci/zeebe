@@ -16,6 +16,7 @@
 package io.zeebe.client.api.command;
 
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.zeebe.client.api.response.WorkflowInstanceResult;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -98,5 +99,7 @@ public interface CreateWorkflowInstanceCommandStep1 {
      *     it to the broker.
      */
     CreateWorkflowInstanceCommandStep3 variables(Object variables);
+
+    FinalCommandStep<WorkflowInstanceResult> withResult();
   }
 }

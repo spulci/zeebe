@@ -7,6 +7,7 @@
  */
 package io.zeebe.broker.it.client.command;
 
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -15,8 +16,10 @@ import io.zeebe.broker.it.util.GrpcClientRule;
 import io.zeebe.broker.test.EmbeddedBrokerRule;
 import io.zeebe.client.api.command.ClientException;
 import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.zeebe.client.api.response.WorkflowInstanceResult;
 import io.zeebe.model.bpmn.Bpmn;
 import io.zeebe.protocol.record.intent.WorkflowInstanceCreationIntent;
+import io.zeebe.test.util.collection.Maps;
 import io.zeebe.test.util.record.RecordingExporter;
 import java.util.Map;
 import org.junit.Before;
@@ -212,6 +215,35 @@ public class CreateWorkflowInstanceTest {
   public void shouldRejectCreateBpmnProcessByNonExistingKey() {
     // when
     final var command = CLIENT_RULE.getClient().newCreateInstanceCommand().workflowKey(123L).send();
+
+    assertThatThrownBy(() -> command.join())
+        .isInstanceOf(ClientException.class)
+        .hasMessageContaining(
+            "Expected to find workflow definition with key '123', but none found");
+  }
+
+  @Test
+  public void shouldCreateWorkflowInstanceAwaitResults() {
+    final Map<String, Object> variables = Maps.of(entry("foo", "bar"));
+    final WorkflowInstanceResult result =
+        CLIENT_RULE
+            .getClient()
+            .newCreateInstanceCommand()
+            .bpmnProcessId(processId)
+            .latestVersion()
+            .variables(variables)
+            .withResult()
+            .send()
+            .join();
+
+    assertThat(result.getBpmnProcessId()).isEqualTo(processId);
+    assertThat(result.getVariablesAsMap()).containsExactly(entry("foo", "bar"));
+  }
+
+  @Test
+  public void shouldReceiveRejectionCreateWorkflowInstanceAwaitResults() {
+    final var command =
+        CLIENT_RULE.getClient().newCreateInstanceCommand().workflowKey(123L).withResult().send();
 
     assertThatThrownBy(() -> command.join())
         .isInstanceOf(ClientException.class)
