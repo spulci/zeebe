@@ -527,7 +527,7 @@ public class JsonSerializableToJsonTest {
               final int elementInstanceKey = 567;
               final String handlerNodeId = "node1";
               final int repetitions = 3;
-              final boolean isTimerStart = true;
+              final TimerType type = TimerType.EVENT_SUBPROC;
 
               return new TimerRecord()
                   .setDueDate(dueDate)
@@ -536,9 +536,9 @@ public class JsonSerializableToJsonTest {
                   .setRepetitions(repetitions)
                   .setWorkflowInstanceKey(workflowInstanceKey)
                   .setWorkflowKey(workflowKey)
-                  .setTimerType(TimerType.EVENT_SUBPROC);
+                  .setTimerType(type);
             },
-        "{'elementInstanceKey':567,'workflowInstanceKey':1234,'dueDate':1234,'targetElementId':'node1','repetitions':3,'workflowKey':13,'timerType':EVENT_SUBPROC}"
+        "{'elementInstanceKey':567,'workflowInstanceKey':1234,'dueDate':1234,'targetElementId':'node1','repetitions':3,'workflowKey':13,'timerType':'EVENT_SUBPROC'}"
       },
 
       /////////////////////////////////////////////////////////////////////////////////////////////
