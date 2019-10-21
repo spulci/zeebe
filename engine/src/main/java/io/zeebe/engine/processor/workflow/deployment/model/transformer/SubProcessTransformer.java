@@ -41,6 +41,8 @@ public class SubProcessTransformer implements ModelElementTransformer<SubProcess
         // top-level start event
         currentWorkflow.getEvents().add(subprocess);
       }
+
+      subprocess.getStartEvents().forEach(e -> e.setEventSubProcess(subprocess.getId()));
     }
 
     subprocess.bindLifecycleState(

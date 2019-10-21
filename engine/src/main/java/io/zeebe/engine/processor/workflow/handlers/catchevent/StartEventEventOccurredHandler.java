@@ -107,12 +107,11 @@ public class StartEventEventOccurredHandler<T extends ExecutableCatchEventElemen
       final BpmnStepContext<T> context,
       final DeployedWorkflow workflow,
       final long workflowInstanceKey) {
-    final DirectBuffer subprocessId = getSubprocessId(context, workflow);
-    record
-        .setBpmnProcessId(workflow.getBpmnProcessId())
-        .setWorkflowKey(workflow.getKey())
-        .setVersion(workflow.getVersion())
-        .setWorkflowInstanceKey(workflowInstanceKey);
+    final ExecutableCatchEventElement startEvent =
+        workflow
+            .getWorkflow()
+            .getElementById(context.getValue().getElementId(), ExecutableCatchEventElement.class);
+    final DirectBuffer subprocessId = startEvent.getEventSubProcess();
 
     if (subprocessId != null) {
       record.setElementId(subprocessId).setBpmnElementType(BpmnElementType.SUB_PROCESS);
@@ -121,6 +120,12 @@ public class StartEventEventOccurredHandler<T extends ExecutableCatchEventElemen
           .setElementId(workflow.getWorkflow().getId())
           .setBpmnElementType(BpmnElementType.PROCESS);
     }
+
+    record
+        .setBpmnProcessId(workflow.getBpmnProcessId())
+        .setWorkflowKey(workflow.getKey())
+        .setVersion(workflow.getVersion())
+        .setWorkflowInstanceKey(workflowInstanceKey);
 
     context
         .getOutput()

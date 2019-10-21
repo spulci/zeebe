@@ -20,6 +20,7 @@ public class ExecutableCatchEventElement extends ExecutableFlowNode
 
   private ExecutableMessage message;
   private Timer timer;
+  private DirectBuffer eventSubProcess;
 
   public ExecutableCatchEventElement(String id) {
     super(id);
@@ -52,6 +53,14 @@ public class ExecutableCatchEventElement extends ExecutableFlowNode
   @Override
   public TimerType getTimerType() {
     return TimerType.CATCH;
+  }
+
+  public DirectBuffer getEventSubProcess() {
+    return eventSubProcess;
+  }
+
+  public void setEventSubProcess(DirectBuffer eventSubProcess) {
+    this.eventSubProcess = eventSubProcess;
   }
 
   public void setTimer(Timer timer) {
