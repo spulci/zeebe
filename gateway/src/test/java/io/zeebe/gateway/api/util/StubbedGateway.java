@@ -26,6 +26,7 @@ import io.zeebe.gateway.impl.broker.cluster.BrokerTopologyManager;
 import io.zeebe.gateway.impl.broker.request.BrokerRequest;
 import io.zeebe.gateway.impl.broker.response.BrokerResponse;
 import io.zeebe.gateway.impl.configuration.GatewayCfg;
+import io.zeebe.gateway.impl.job.LongPollingActivateJobsHandler;
 import io.zeebe.gateway.protocol.GatewayGrpc;
 import io.zeebe.gateway.protocol.GatewayGrpc.GatewayBlockingStub;
 import io.zeebe.util.sched.ActorScheduler;
@@ -39,12 +40,15 @@ import java.util.function.Consumer;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class StubbedGateway extends Gateway {
 
+  public static final long LONG_POLLING_TIMEOUT = 5000;
+  public static final long PROBE_TIMEOUT = 20000;
+  public static final int FAILED_RESPONSE_THRESHOLD = 3;
   private static final String SERVER_NAME = "server";
-
   private Map<Class<?>, RequestHandler> requestHandlers = new HashMap<>();
   private List<BrokerRequest> brokerRequests = new ArrayList<>();
 
   private StubbedBrokerClient brokerClient;
+  private LongPollingActivateJobsHandler longPollingHandler;
 
   public StubbedGateway(ActorScheduler actorScheduler) {
     super(
@@ -77,6 +81,22 @@ public class StubbedGateway extends Gateway {
     return brokerClient;
   }
 
+  @Override
+  protected LongPollingActivateJobsHandler buildLongPollingHandler(BrokerClient brokerClient) {
+    this.longPollingHandler =
+        LongPollingActivateJobsHandler.newBuilder()
+            .setBrokerClient(brokerClient)
+            .setLongPollingTimeout(LONG_POLLING_TIMEOUT)
+            .setProbeTimeoutMillis(PROBE_TIMEOUT)
+            .setMinEmptyResponses(FAILED_RESPONSE_THRESHOLD)
+            .build();
+    return longPollingHandler;
+  }
+
+  public LongPollingActivateJobsHandler getLongPollingHandler() {
+    return longPollingHandler;
+  }
+
   public <T extends BrokerRequest<?>> T getSingleBrokerRequest() {
     assertThat(brokerRequests).hasSize(1);
     return (T) brokerRequests.get(0);
@@ -100,7 +120,7 @@ public class StubbedGateway extends Gateway {
   private class StubbedBrokerClient implements BrokerClient {
 
     BrokerTopologyManager topologyManager = new StubbedTopologyManager();
-    private Consumer<String> jobsAvalableHandler;
+    private Consumer<String> jobsAvailableHandler;
 
     @Override
     public void close() {}
@@ -141,11 +161,11 @@ public class StubbedGateway extends Gateway {
 
     @Override
     public void subscribeJobAvailableNotification(String topic, Consumer<String> handler) {
-      this.jobsAvalableHandler = handler;
+      this.jobsAvailableHandler = handler;
     }
 
     public void notifyJobAvailable(String type) {
-      jobsAvalableHandler.accept(type);
+      jobsAvailableHandler.accept(type);
     }
   }
 

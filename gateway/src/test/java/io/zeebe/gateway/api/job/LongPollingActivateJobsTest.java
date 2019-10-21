@@ -7,6 +7,8 @@
  */
 package io.zeebe.gateway.api.job;
 
+import static io.zeebe.gateway.api.util.StubbedGateway.FAILED_RESPONSE_THRESHOLD;
+import static io.zeebe.gateway.api.util.StubbedGateway.LONG_POLLING_TIMEOUT;
 import static io.zeebe.test.util.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,23 +33,13 @@ import org.junit.Test;
 public class LongPollingActivateJobsTest extends GatewayTest {
 
   private static final String TYPE = "test";
-  private static final long LONG_POLLING_TIMEOUT = 5000;
-  private static final long PROBE_TIMEOUT = 20000;
-  private static final int FAILED_RESPONSE_THRESHOLD = 3;
   private LongPollingActivateJobsHandler handler;
   private ActivateJobsStub stub;
   private int partitionsCount;
 
   @Before
   public void setup() {
-    handler =
-        LongPollingActivateJobsHandler.newBuilder()
-            .setBrokerClient(brokerClient)
-            .setLongPollingTimeout(LONG_POLLING_TIMEOUT)
-            .setProbeTimeoutMillis(PROBE_TIMEOUT)
-            .setMinEmptyResponses(FAILED_RESPONSE_THRESHOLD)
-            .build();
-    actorSchedulerRule.submitActor(handler);
+    handler = gateway.getLongPollingHandler();
     stub = spy(new ActivateJobsStub());
     stub.registerWith(gateway);
     stub.addAvailableJobs(TYPE, 0);
@@ -83,7 +75,7 @@ public class LongPollingActivateJobsTest extends GatewayTest {
 
     // then
     verify(responseSpy, timeout(2000).times(1)).onNext(any());
-    verify(responseSpy, times(1)).onCompleted();
+    verify(responseSpy, timeout(1000).times(1)).onCompleted();
   }
 
   @Test
@@ -158,7 +150,7 @@ public class LongPollingActivateJobsTest extends GatewayTest {
 
     // then
     verify(successRequest.getResponseObserver(), timeout(2000).times(1)).onNext(any());
-    verify(successRequest.getResponseObserver(), times(1)).onCompleted();
+    verify(successRequest.getResponseObserver(), timeout(1000).times(1)).onCompleted();
   }
 
   @Test
