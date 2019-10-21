@@ -8,7 +8,9 @@
 package io.zeebe.logstreams.fs.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.zeebe.logstreams.impl.log.fs.FsLogSegment;
 import io.zeebe.logstreams.impl.log.fs.FsLogSegments;
@@ -29,9 +31,8 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldGetFirstSegment() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(0, new FsLogSegment[] {firstSegment, secondSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment, secondSegment});
 
     final FsLogSegment segment = fsLogSegments.getFirst();
 
@@ -40,9 +41,8 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldGetFirstSegmentWithInitialSegmentId() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(1, new FsLogSegment[] {firstSegment, secondSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment, secondSegment});
 
     final FsLogSegment segment = fsLogSegments.getFirst();
 
@@ -51,9 +51,7 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldNotGetFirstSegmentIfEmpty() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(0, new FsLogSegment[0]);
+    final FsLogSegments fsLogSegments = FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[0]);
 
     final FsLogSegment segment = fsLogSegments.getFirst();
 
@@ -62,9 +60,8 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldGetSegment() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(0, new FsLogSegment[] {firstSegment, secondSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment, secondSegment});
 
     assertThat(fsLogSegments.getSegment(0)).isEqualTo(firstSegment);
     assertThat(fsLogSegments.getSegment(1)).isEqualTo(secondSegment);
@@ -72,9 +69,9 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldGetSegmentWithInitialSegmentId() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(1, new FsLogSegment[] {firstSegment, secondSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment, secondSegment});
+    when(firstSegment.getSegmentId()).thenReturn(1);
 
     assertThat(fsLogSegments.getSegment(1)).isEqualTo(firstSegment);
     assertThat(fsLogSegments.getSegment(2)).isEqualTo(secondSegment);
@@ -82,9 +79,9 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldNotGetSegmentIfNotExists() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(1, new FsLogSegment[] {firstSegment, secondSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment, secondSegment});
+    when(firstSegment.getSegmentId()).thenReturn(1);
 
     assertThat(fsLogSegments.getSegment(0)).isNull();
     assertThat(fsLogSegments.getSegment(3)).isNull();
@@ -92,9 +89,8 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldAddSegment() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(0, new FsLogSegment[] {firstSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment});
 
     fsLogSegments.addSegment(secondSegment);
 
@@ -103,9 +99,8 @@ public class FsLogSegmentsTest {
 
   @Test
   public void shouldCloseAllSegments() {
-    final FsLogSegments fsLogSegments = new FsLogSegments();
-
-    fsLogSegments.init(0, new FsLogSegment[] {firstSegment, secondSegment});
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(new FsLogSegment[] {firstSegment, secondSegment});
 
     fsLogSegments.closeAll();
 
@@ -113,5 +108,32 @@ public class FsLogSegmentsTest {
     verify(secondSegment).closeSegment();
 
     assertThat(fsLogSegments.getFirst()).isNull();
+  }
+
+  @Test
+  public void shouldDeleteUntilSegmentId() {
+    // given
+    final FsLogSegment thirdSegment = mock(FsLogSegment.class);
+    final FsLogSegment fourthSegment = mock(FsLogSegment.class);
+    final FsLogSegment fifthSegment = mock(FsLogSegment.class);
+
+    when(firstSegment.getSegmentId()).thenReturn(1);
+    when(secondSegment.getSegmentId()).thenReturn(2);
+    when(thirdSegment.getSegmentId()).thenReturn(3);
+    when(fourthSegment.getSegmentId()).thenReturn(4);
+    when(fifthSegment.getSegmentId()).thenReturn(5);
+
+    final FsLogSegments fsLogSegments =
+        FsLogSegments.fromFsLogSegmentsArray(
+            new FsLogSegment[] {
+              firstSegment, secondSegment, thirdSegment, fourthSegment, fifthSegment
+            });
+
+    // when
+    fsLogSegments.deleteSegmentsUntil(3);
+
+    // then
+    assertThat(fsLogSegments.getFirstSegmentId()).isEqualTo(3);
+    assertThat(fsLogSegments.getFirst()).isEqualTo(thirdSegment);
   }
 }
